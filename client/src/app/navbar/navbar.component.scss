@@ -1,0 +1,138 @@
+#logobar {
+  //background-color: #d2f3c5;
+
+  @media only screen and (min-width: 1025px) {
+    .team-flag {
+      margin: 0 5px;
+      background-size: 175px 385px;
+      width: 35px;
+      height: 35px;
+    }
+  }
+  @media only screen and (max-width: 1025px) {
+    .team-flag {
+      margin: 0 0;
+      background-size: 125px 275px;
+      width: 25px;
+      height: 25px;
+    }
+  }
+
+  .team-flag {
+    background-repeat: no-repeat;
+    background-image: url("../../assets/logosl1.png");
+  }
+
+  .ASSE {
+    background-position: 75% 0;
+  }
+
+  .ANG {
+    background-position: 0 0;
+  }
+
+  .ASM {
+    background-position: 25% 0;
+  }
+
+  .ASNL {
+    background-position: 50% 0;
+  }
+
+  .BAS {
+    background-position: 100% 0;
+  }
+
+  .BDX {
+    background-position: 0 10%;
+  }
+
+  .CAEN {
+    background-position: 25% 10%;
+  }
+
+  .DFCO {
+    background-position: 50% 10%;
+  }
+
+  .EAG {
+    background-position: 75% 10%;
+  }
+
+  .LOR {
+    background-position: 100% 10%;
+  }
+
+  .LOSC {
+    background-position: 0 20%;
+  }
+
+  .METZ {
+    background-position: 25% 20%;
+  }
+
+  .MONT {
+    background-position: 50% 20%;
+  }
+
+  .NAN {
+    background-position: 75% 20%;
+  }
+
+  .OGCN {
+    background-position: 100% 20%;
+  }
+
+  .OL {
+    background-position: 0 30%;
+  }
+
+  .OM {
+    background-position: 25% 30%;
+  }
+
+  .PSG {
+    background-position: 50% 30%;
+  }
+
+  .REN {
+    background-position: 75% 30%;
+  }
+
+  .TFC {
+    background-position: 100% 30%;
+  }
+
+  .ASC {
+    background-position: 50% 40%;
+  }
+
+  .ESTAC {
+    background-position: 0 40%;
+  }
+
+  .RCS {
+    background-position: 25% 40%;
+  }
+}
+
+#menu {
+  &.navbar {
+    padding-top: 0;
+    padding-bottom: 0;
+    background-color: #cfcfcf4d;
+  }
+
+  .navbar-brand {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  a {
+    margin-left: 10px;
+  }
+
+  img {
+    height: 50px;
+  }
+}

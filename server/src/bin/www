@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+
+/**
+ * @fileoverview Http Server configuration
+ * @module bin/www
+ * @requires {@link external:http}
+ * @requires app
+ * @requires helpers/logger
+ */
+
+const http = require('http');
+const app = require('../app');
+const logger = require('../helpers/logger');
+
+/**
+ * Normalizes a port into a number, string, or false.
+ * @function normalizePort
+ * @private
+ * @param   {Number|String} val - value to normalize
+ * @returns {Number|String|boolean} port value or false if val is not valid
+ */
+function normalizePort(val) {
+  const port = parseInt(val, 10);
+  if (Number.isNaN(port)) return val;
+  if (port >= 0) return port;
+  return false;
+}
+
+// Get port from environment
+const port = normalizePort(app.get('port'));
+
+/**
+ * Event listener for HTTP server "error" event.
+ * @function onError
+ * @private
+ * @param  {external:Error} error - received error
+ */
+function onError(error) {
+  if (error.syscall !== 'listen') throw error;
+
+  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      logger.fatal(`${bind} requires elevated privileges`);
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      logger.fatal(`${bind} is already in use`);
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+// Creates HTTP server
+const server = http.createServer(app);
+
+// Listens on provided port, on all network interfaces
+server.listen(port, () => {
+  logger.info('Server started, listening on %s', port);
+  // For tests
+  app.emit('appStarted');
+  // For pm2
+  if (process.env.PM2) process.send('ready');
+});
+
+// Catches server errors
+server.on('error', onError);
+
+/**
+ * Gracefully closes application server, waiting for opened
+ * requests to end and forces close after 5s timeout
+ * @function gracefulShutdown
+ * @private
+ */
+function gracefulShutdown() {
+  logger.info('Closing application server ...');
+
+  server.close(() => {
+    logger.info('Application server closed');
+    process.exit(0);
+  });
+
+  // Force close server after 5secs
+  setTimeout((e) => {
+    logger.info('Application server closed', e);
+    process.exit(1);
+  }, 5000);
+}
+
+// Catches signals to gracefull quit
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+
+module.exports = server;

@@ -1,0 +1,9 @@
+# runtime
+/logs
+
+# misc
+/documentation
+/coverage
+
+# dependencies
+/node_modules

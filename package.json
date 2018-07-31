@@ -1,0 +1,37 @@
+{
+  "name": "mean-stack",
+  "version": "1.0.0",
+  "description": "Mean stack boilerplate",
+  "main": "./server/src/bin/www",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "concurrently \"cd client && npm i\" \"cd server && npm i\"",
+    "dev": "concurrently \"cd client && npm run start\" \"cd server && npm run dev\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/angusyg/mean-stack.git"
+  },
+  "keywords": [
+    "mean",
+    "mongodb",
+    "express",
+    "angular",
+    "node",
+    "mongoose",
+    "passport",
+    "jsonwebtoken",
+    "pm2",
+    "docker",
+    "docker-compose"
+  ],
+  "author": "Angusyg",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/angusyg/mean-stack/issues"
+  },
+  "homepage": "https://github.com/angusyg/mean-stack#readme",
+  "devDependencies": {
+    "concurrently": "^3.6.1"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "name": "mean-stack-server",
+  "version": "1.0.0",
+  "description": "Mean stack server boilerplate",
+  "main": "./src/bin/www",
+  "scripts": {
+    "test": "cross-env NODE_ENV=test nyc --reporter=html --reporter=text mocha src/**/*.spec.js test/tests.js --timeout 10000 --exit",
+    "test:ti": "cross-env NODE_ENV=test mocha test/tests.js --timeout 10000 --exit",
+    "test:tu": "cross-env NODE_ENV=test mocha src/**/*.spec.js --timeout 10000 --exit",
+    "dev": "cross-env NODE_ENV=development nodemon",
+    "lint": "gulp lint",
+    "doc": "gulp jsdoc",
+    "start": "node ./src/bin/www"
+  },
+  "private": true,
+  "keywords": [
+    "node",
+    "express",
+    "mean",
+    "mongodb",
+    "express",
+    "node",
+    "mongoose",
+    "passport",
+    "jsonwebtoken"
+  ],
+  "nyc": {
+    "exclude": [
+      "**/*.spec.js",
+      "test/**/*.js"
+    ],
+    "temp-directory": "./coverage/.nyc_output"
+  },
+  "dependencies": {
+    "bcrypt": "^2.0.1",
+    "body-parser": "^1.18.3",
+    "compression": "^1.7.2",
+    "continuation-local-storage": "^3.2.1",
+    "cors": "^2.8.4",
+    "cross-env": "^5.2.0",
+    "cross-var": "^1.1.0",
+    "csurf": "^1.9.0",
+    "express": "^4.16.3",
+    "express-pino-logger": "^3.0.1",
+    "helmet": "^3.12.0",
+    "jquery": "^3.3.1",
+    "jsonwebtoken": "^8.3.0",
+    "kind-of": "^6.0.2",
+    "mongoose": "^5.2.5",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "pino": "^4.17.3",
+    "pino-multi-stream": "^3.1.2",
+    "uuid": "^3.2.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-http": "^4.0.0",
+    "concurrently": "^3.5.1",
+    "del": "^3.0.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.12.0",
+    "gulp": "^3.9.1",
+    "gulp-eslint": "^4.0.2",
+    "gulp-jsdoc3": "^2.0.0",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-util": "^3.0.8",
+    "istanbul": "^0.4.5",
+    "jsdoc-http-plugin": "^0.3.0",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.17.5",
+    "nyc": "^12.0.2",
+    "proxyquire": "^2.0.1",
+    "pump": "^3.0.0",
+    "run-sequence": "^2.2.1",
+    "sinon": "^6.0.0",
+    "supertest": "^3.1.0"
+  }
+}
