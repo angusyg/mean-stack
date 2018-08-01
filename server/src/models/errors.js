@@ -56,7 +56,7 @@ class ApiError extends Error {
       type = kindOf(args[1]);
       if (type === 'string') this.message = args[1];
       else throw new TypeError(`Invalid type '${type}' for new ApiError second argument`);
-    } else throw new TypeError(`Invalid number of arguments for new ApiError (${args.length} should be <= 2)`);
+    } else if (args.length > 2) throw new TypeError(`Invalid number of arguments for new ApiError (${args.length} should be <= 2)`);
   }
 
   /**

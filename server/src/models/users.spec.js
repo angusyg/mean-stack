@@ -1,8 +1,9 @@
+/* eslint no-unused-expressions: 0 */
+
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-const camo = require('camo');
-const { ValidationError } = require('camo/lib/errors');
-const { validateId } = require('camo/test/util');
+const sinon = require('sinon');
+const restify = require('express-restify-mongoose');
 const User = require('./users');
 
 chai.use(chaiAsPromised);
@@ -15,168 +16,99 @@ describe('Module models/users', () => {
   });
 
   describe('Unit tests', () => {
-    let database;
-    before((done) => {
-      camo.connect('nedb://memory')
-        .then((db) => {
-          database = db;
-          done();
-        });
-    });
+    const userTest = {
+      login: 'TEST',
+      password: 'PASSWORD',
+      roles: ['ADMIN', 'USER'],
+    };
+    const router = {};
+    const restifyStub = sinon.stub(restify, 'serve');
 
     afterEach((done) => {
-      database.dropDatabase()
-        .then(() => done());
+      restifyStub.reset();
+      done();
     });
 
     after((done) => {
-      database.dropDatabase()
-        .then(() => done());
-    });
-
-    it('create(): should create an empty User', (done) => {
-      const user = User.create();
-      expect(user).to.have.own.property('login').to.be.undefined;
-      expect(user).to.have.own.property('password').to.be.undefined;
-      expect(user).to.have.own.property('roles').to.be.eql(['USER']);
-      expect(user).to.have.own.property('refreshToken').to.be.empty;
+      restifyStub.restore();
       done();
     });
 
-    it('create(u: Object): should create a User from u', (done) => {
-      const user = User.create({
-        login: 'LOGIN',
-        password: 'PASSWORD',
-        roles: ['ADMIN', 'USER'],
-      });
-      expect(user).to.have.own.property('login', 'LOGIN');
-      expect(user).to.have.own.property('password', 'PASSWORD');
-      expect(user).to.have.own.property('roles').to.be.eql(['ADMIN', 'USER']);
-      expect(user).to.have.own.property('refreshToken').to.be.empty;
+    it('new(): should create an empty User', (done) => {
+      const user = new User();
+      expect(user).to.have.property('login').to.be.undefined;
+      expect(user).to.have.property('password').to.be.undefined;
+      expect(user).to.have.property('roles').to.be.eql(['USER']);
+      expect(user).to.have.property('settings').to.deep.include({ theme: 'theme-default' });
+      expect(user).to.have.property('refreshToken').to.be.empty;
       done();
     });
 
-    it('should allow to fill User after create()', (done) => {
-      const user = User.create();
-      user.login = 'LOGIN';
-      user.password = 'PASSWORD';
-      user.roles = ['ADMIN', 'USER'];
+    it('new(u: Object): should create a User from u', (done) => {
+      const user = new User(userTest);
+      expect(user).to.have.property('login', userTest.login);
+      expect(user).to.have.property('password', userTest.password);
+      expect(user).to.have.property('roles').to.be.eql(userTest.roles);
+      expect(user).to.have.property('settings').to.deep.include({ theme: 'theme-default' });
+      expect(user).to.have.property('refreshToken').to.be.empty;
+      done();
+    });
+
+    it('should allow to fill User after new()', (done) => {
+      const user = new User();
+      user.login = userTest.login;
+      user.password = userTest.password;
+      user.roles = userTest.roles;
       user.refreshToken = 'TOKEN';
-      expect(user).to.have.own.property('login', 'LOGIN');
-      expect(user).to.have.own.property('password', 'PASSWORD');
-      expect(user).to.have.own.property('roles').to.be.eql(['ADMIN', 'USER']);
-      expect(user).to.have.own.property('refreshToken', 'TOKEN');
+      expect(user).to.have.property('login', userTest.login);
+      expect(user).to.have.property('password', userTest.password);
+      expect(user).to.have.property('roles').to.be.eql(userTest.roles);
+      expect(user).to.have.property('settings').to.deep.include({ theme: 'theme-default' });
+      expect(user).to.have.property('refreshToken', 'TOKEN');
       done();
     });
 
-    it('comparePassword(p: string): should compare p against encrypted User password', () => {
-      const user = User.create({
-        login: 'LOGIN',
+    it('validate(): should reject with a ValidationError on empty login', (done) => {
+      const user = new User({
         password: 'PASSWORD',
         roles: ['ADMIN', 'USER'],
       });
-      user.preSave();
-      return expect(user.comparePassword('PASSWORD')).to.eventually.to.be.true;
+      user.validate((err) => {
+        expect(err.errors.login).to.exist;
+        expect(err.errors.login).to.have.own.property('message', 'Path `login` is required.');
+        done();
+      });
     });
 
-    it('save(): should save User in database', () => {
-      const user = User.create({
-        login: 'LOGIN',
-        password: 'PASSWORD',
+    it('validate(): should reject with a ValidationError on empty password', (done) => {
+      const user = new User({
+        login: 'TEST',
         roles: ['ADMIN', 'USER'],
       });
-      return user.save()
-        .then(() => {
-          validateId(user);
-          expect(user).to.have.own.property('login', 'LOGIN');
-          expect(user).to.have.own.property('roles').to.be.eql(['ADMIN', 'USER']);
-          expect(user).to.have.own.property('refreshToken').to.be.empty;
-          expect(user).to.have.own.property('password');
-          return expect(user.comparePassword('PASSWORD')).to.eventually.to.be.true;
-        });
+      user.validate((err) => {
+        expect(err.errors.password).to.exist;
+        expect(err.errors.password).to.have.own.property('message', 'Path `password` is required.');
+        done();
+      });
     });
 
-    it('save(): should reject with a ValidationError on empty login', (done) => {
-      const user = User.create({
-        password: 'PASSWORD',
-        roles: ['ADMIN', 'USER'],
-      });
-      user.save()
-        .catch((err) => {
-          expect(err).to.be.an.instanceof(ValidationError);
-          expect(err).to.have.own.property('message', 'Key users.login is required, but got undefined');
-          done();
-        });
+    it('restify(router: Router): should add REST User resource to router', (done) => {
+      User.restify(router);
+      expect(restifyStub.calledOnce).to.be.true;
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('name', 'Users');
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['password', 'refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.not.have.property('preMiddleware').to.be.true;
+      done();
     });
 
-    it('save(): should reject with a ValidationError on empty password', (done) => {
-      const user = User.create({
-        login: 'LOGIN',
-        roles: ['ADMIN', 'USER'],
-      });
-      user.save()
-        .catch((err) => {
-          expect(err).to.be.an.instanceof(ValidationError);
-          expect(err).to.have.own.property('message', 'Key users.password is required, but got undefined');
-          done();
-        });
-    });
-
-    it('save(): should reject with a ValidationError on type of login not being String', (done) => {
-      const user = User.create({
-        login: 0,
-        password: 'PASSWORD',
-        roles: ['ADMIN', 'USER'],
-      });
-      user.save()
-        .catch((err) => {
-          expect(err).to.be.an.instanceof(ValidationError);
-          expect(err).to.have.own.property('message', 'Value assigned to users.login should be String, got number');
-          done();
-        });
-    });
-
-    it('save(): should reject with a ValidationError on type of password not being String', (done) => {
-      const user = User.create({
-        login: 'LOGIN',
-        password: 0,
-        roles: ['ADMIN', 'USER'],
-      });
-      user.save()
-        .catch((err) => {
-          expect(err).to.be.an.instanceof(ValidationError);
-          expect(err).to.have.own.property('message', 'Value assigned to users.password should be String, got number');
-          done();
-        });
-    });
-
-    it('save(): should reject with a ValidationError on type of roles not being [String]', (done) => {
-      const user = User.create({
-        login: 'LOGIN',
-        password: 'PASSWORD',
-        roles: [0],
-      });
-      user.save()
-        .catch((err) => {
-          expect(err).to.be.an.instanceof(ValidationError);
-          expect(err).to.have.own.property('message', 'Value assigned to users.roles should be [String], got [0]');
-          done();
-        });
-    });
-
-    it('save(): should reject with a ValidationError on type of refreshToken not being String', (done) => {
-      const user = User.create({
-        login: 'LOGIN',
-        password: 'PASSWORD',
-        roles: ['ADMIN', 'USER'],
-        refreshToken: 0,
-      });
-      user.save()
-        .catch((err) => {
-          expect(err).to.be.an.instanceof(ValidationError);
-          expect(err).to.have.own.property('message', 'Value assigned to users.refreshToken should be String, got number');
-          done();
-        });
+    it('restify(router: Router, preMiddleware: Function): should add REST User resource to router with preMiddleware', (done) => {
+      const pm = sinon.stub();
+      User.restify(router, pm);
+      expect(restifyStub.calledOnce).to.be.true;
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('name', 'Users');
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['password', 'refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('preMiddleware', pm);
+      done();
     });
   });
 });

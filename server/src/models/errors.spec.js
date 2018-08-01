@@ -1,9 +1,19 @@
-/* eslint: no-unused-expressions: 0 */
+/* eslint no-unused-expressions: 0 */
 
 const chai = require('chai');
 const sinon = require('sinon');
 const errors = require('./errors');
 
+const {
+  ApiError,
+  NotFoundError,
+  UnauthorizedAccessError,
+  ForbiddenOperationError,
+  JwtTokenExpiredError,
+  NoJwtTokenError,
+  JwtTokenSignatureError,
+  NotFoundResourceError,
+} = errors;
 const expect = chai.expect;
 
 describe('Module models/errors', () => {
@@ -42,27 +52,24 @@ describe('Module models/errors', () => {
     done();
   });
 
+  it('should export NotFoundResourceError', (done) => {
+    expect(errors).to.have.own.property('NotFoundResourceError').to.be.a('function');
+    done();
+  });
+
   describe('Unit tests', () => {
     let status;
     let json;
     let res;
     const req = { id: 'UUID' };
-    const {
-      ApiError,
-      NotFoundError,
-      UnauthorizedAccessError,
-      ForbiddenOperationError,
-      JwtTokenExpiredError,
-      NoJwtTokenError,
-      JwtTokenSignatureError,
-    } = errors;
 
     describe('ApiError', () => {
-      beforeEach(() => {
+      beforeEach((done) => {
         status = sinon.stub();
         json = sinon.spy();
         res = { json, status };
         status.returns(res);
+        done();
       });
 
       it('constructor(): should return an ApiError', (done) => {
@@ -306,6 +313,20 @@ describe('Module models/errors', () => {
         expect(error).to.have.own.property('statusCode', 401);
         expect(error).to.have.own.property('code', 'INVALID_TOKEN_SIGNATURE');
         expect(error).to.have.own.property('message', 'Jwt token signature is invalid');
+        done();
+      });
+    });
+
+    describe('NotFoundResourceError', () => {
+      it('constructor(): should return a NotFoundResourceError', (done) => {
+        const error = new NotFoundResourceError('ID');
+        expect(error).to.be.an.instanceof(Error);
+        expect(error).to.be.an.instanceof(ApiError);
+        expect(error).to.be.an.instanceof(NotFoundResourceError);
+        expect(error).to.have.own.property('name', 'NotFoundResourceError');
+        expect(error).to.have.own.property('statusCode', 404);
+        expect(error).to.have.own.property('code', 'RESOURCE_NOT_FOUND');
+        expect(error).to.have.own.property('message', 'No resource found with id \'ID\'');
         done();
       });
     });

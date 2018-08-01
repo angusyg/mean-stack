@@ -1,3 +1,5 @@
+/* eslint no-unused-expressions: 0 */
+
 const chai = require('chai');
 const sinon = require('sinon');
 const security = require('./security');
@@ -25,19 +27,21 @@ describe('Module helpers/security', () => {
   describe('Unit tests', () => {
     const req = { user: { roles: ['USER'] } };
     const res = {};
-    let next;
-    let initializeStub;
-    let authenticateStub;
+    const next = sinon.stub();
+    const initializeStub = sinon.stub(passport, 'initialize');
+    const authenticateStub = sinon.stub(passport, 'authenticate');
 
-    beforeEach(() => {
-      initializeStub = sinon.stub(passport, 'initialize');
-      authenticateStub = sinon.stub(passport, 'authenticate');
-      next = sinon.spy();
+    afterEach((done) => {
+      initializeStub.reset();
+      authenticateStub.reset();
+      next.reset();
+      done();
     });
 
-    afterEach(() => {
+    after((done) => {
       initializeStub.restore();
       authenticateStub.restore();
+      done();
     });
 
     it('initialize(): should initialize passport', (done) => {

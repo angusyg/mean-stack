@@ -1,4 +1,4 @@
-/* eslint: no-unused-expressions: 0 */
+/* eslint no-unused-expressions: 0 */
 
 const chai = require('chai');
 const sinon = require('sinon');
@@ -21,17 +21,12 @@ describe('Module helpers/errorhandler', () => {
   describe('Unit tests', () => {
     const req = {};
     const res = {};
-    let handleStub;
-    let next;
-
-    beforeEach((done) => {
-      next = sinon.spy();
-      handleStub = sinon.stub(ApiError, 'handle');
-      done();
-    });
+    const handleStub = sinon.stub(ApiError, 'handle');
+    const next = sinon.stub();
 
     afterEach((done) => {
-      handleStub.restore();
+      handleStub.reset();
+      next.reset();
       done();
     });
 

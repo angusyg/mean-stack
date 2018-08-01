@@ -1,5 +1,4 @@
 const chai = require('chai');
-const camo = require('camo');
 const util = require('util');
 const proxyquire = require('proxyquire');
 const jsonwebtoken = require('jsonwebtoken');
