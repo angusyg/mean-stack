@@ -13,15 +13,15 @@
 const passport = require('passport');
 const { Strategy, ExtractJwt } = require('passport-jwt');
 const { JsonWebTokenError, TokenExpiredError } = require('jsonwebtoken');
-const config = require('../config/api');
-const { User } = require('../models/users');
+const { tokenSecretKey } = require('../config/api');
+const User  = require('../models/users');
 const { UnauthorizedAccessError, JwtTokenExpiredError, NoJwtTokenError, JwtTokenSignatureError } = require('../models/errors');
 const logger = require('../helpers/logger');
 
 // Registers JWT strategy authentication
 passport.use(new Strategy({
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: config.tokenSecretKey,
+  secretOrKey: tokenSecretKey,
 }, (jwtPayload, cb) => {
   User.findOne({ login: jwtPayload.login })
     .then((user) => {
@@ -32,11 +32,19 @@ passport.use(new Strategy({
 }));
 
 module.exports = {
-  initialize: () => {
-    const init = passport.initialize();
-    logger.info('Passport initialized');
-    return init;
-  },
+  /**
+   * Initializes passport middleware on request
+   * @function initialize
+   */
+  initialize: () => passport.initialize(),
+
+  /**
+   * Authenticates User from authorization header and JWT
+   * @function authenticate
+   * @param  {external:Request}  req  - Request received
+   * @param  {external:Response} res  - Response to send
+   * @param  {nextMiddleware}    next - Callback to pass control to next middleware
+   */
   authenticate: (req, res, next) => passport.authenticate('jwt', { session: false }, (err, user, info) => {
     logger.debug(`Passport authentication done: - err = '${err}' - info = '${info}' - user = '${user}'`);
     if (err) return next(err);

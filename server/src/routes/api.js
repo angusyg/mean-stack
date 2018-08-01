@@ -76,19 +76,7 @@ router.get(refreshPath, requiresLogin, apiController.refreshToken);
  */
 router.get(validateTokenPath, requiresLogin, apiController.validateToken);
 
-/** User resource */
-router.use('/users', resources.addResource('users', User, {
-  global: {
-    protected: true,
-    roles: [
-      roles.ADMIN,
-      roles.USER,
-    ],
-  },
-  filter: [
-    'password',
-    'refreshToken',
-  ],
-}).router);
+// Add of REST User endpoint
+User.restify(router, requiresLogin);
 
 module.exports = router;

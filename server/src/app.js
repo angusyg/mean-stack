@@ -11,6 +11,7 @@
  * @requires {@link external:cors}
  * @requires helpers/passport
  * @requires config/app
+ * @requires config/api
  * @requires config/db
  * @requires helpers/errorhandler
  * @requires helpers/logger
@@ -27,7 +28,8 @@ const pino = require('express-pino-logger');
 const uuidv4 = require('uuid/v4');
 const helmet = require('helmet');
 const cors = require('cors');
-const appConfig = require('./config/app');
+const appCfg = require('./config/app');
+const apiCfg = require('./config/api');
 const { connect } = require('./config/db');
 const errorHandler = require('./helpers/errorhandler');
 const logger = require('./helpers/logger');
@@ -36,7 +38,7 @@ const apiRouter = require('./routes/api');
 
 const app = express();
 
-app.set('port', appConfig.app.port);
+app.set('port', appCfg.app.port);
 
 // Logger middleware
 app.use(pino({
@@ -51,11 +53,11 @@ connect()
 
 // Security middlewares
 app.use(helmet());
-app.use(cors(appConfig.crossOrigin));
+app.use(cors(appCfg.crossOrigin));
 
 // Body parser (to json) middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Security initialization
 app.use(security.initialize());
@@ -65,7 +67,7 @@ app.use(compression());
 app.use(express.static(path.join(__dirname, '../../client/dist')));
 
 // Map modules routes
-app.use('/api', apiRouter);
+app.use(apiCfg.base, apiRouter);
 
 // Default error handlers
 app.use(errorHandler.errorNoRouteMapped);

@@ -42,6 +42,7 @@
     "csurf": "^1.9.0",
     "express": "^4.16.3",
     "express-pino-logger": "^3.0.1",
+    "express-restify-mongoose": "^5.0.0",
     "helmet": "^3.12.0",
     "jquery": "^3.3.1",
     "jsonwebtoken": "^8.3.0",

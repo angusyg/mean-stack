@@ -4,7 +4,7 @@ const camo = require('camo');
 const psp = require('passport');
 const jwt = require('jsonwebtoken');
 const config = require('../config/api');
-const { User } = require('../models/users');
+const User = require('../models/users');
 const passport = require('./passport');
 const { UnauthorizedAccessError, JwtTokenExpiredError, NoJwtTokenError, JwtTokenSignatureError } = require('../models/errors');
 

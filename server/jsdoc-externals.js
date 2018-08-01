@@ -138,3 +138,9 @@
  * @external mongoose
  * @see http://mongoosejs.com/
  */
+
+/**
+ * Easily create a flexible REST interface for mongoose models
+ * @external express-restify-mongoose
+ * @see https://florianholzapfel.github.io/express-restify-mongoose
+ */

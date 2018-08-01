@@ -12,7 +12,7 @@
 const uuidv4 = require('uuid/v4');
 const jwt = require('jsonwebtoken');
 const config = require('../config/api');
-const { User } = require('../models/users');
+const User = require('../models/users');
 const { ApiError, UnauthorizedAccessError } = require('../models/errors');
 const logger = require('../helpers/logger');
 

@@ -3,6 +3,8 @@
  * @module config/api
  */
 
+const { NotFoundResourceError } = require('../models/errors');
+
 /**
  * API configuration
  * @namespace
@@ -85,6 +87,20 @@ const api = {
   roles: {
     ADMIN: 'ADMIN',
     USER: 'USER',
+  },
+
+  /**
+   * REST endpoint default configuration
+   * @type {Object}
+   */
+  restResourceOptions: {
+    prefix: '',
+    version: '',
+    private: ['__v'],
+    onError: (err, req, res, next) => {
+      if (req.erm.statusCode === 404) next(new NotFoundResourceError(req.params.id));
+      else next(err);
+    },
   },
 };
 

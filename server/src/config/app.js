@@ -1,8 +1,6 @@
 /**
  * @fileoverview This is base application configuration values
  * @module config/app
- * @requires {@link external:path}
- * @requires {@link external:fs}
  */
 
 /**
@@ -37,9 +35,9 @@ const crossOrigin = {
    */
   origin(origin, callback) {
     const whitelistOrigins = [];
-    if (whitelistOrigins.length === 0) callback(null, true);
-    else if (whitelistOrigins.indexOf(origin) !== -1) callback(null, true);
-    else callback(new Error('Not allowed by CORS'));
+    if (whitelistOrigins.length === 0) return callback(null, true);
+    if (whitelistOrigins.indexOf(origin) !== -1) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
   },
 
   /**
@@ -59,12 +57,12 @@ const crossOrigin = {
   /**
    * Allowed headers on cross origin request
    * @type {string[]}
-   * @default ['authorization','refresh','content-type']
+   * @default ['Authorization','Refresh','Content-type']
    */
   allowedHeaders: [
-    'authorization',
-    'refresh',
-    'content-type',
+    'Authorization',
+    'Refresh',
+    'Content-type',
   ],
 
   /**

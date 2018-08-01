@@ -3,9 +3,7 @@
  * @module helpers/logger
  * @requires {@link external:fs}
  * @requires {@link external:pino}
- * @requires {@link external:pino-debug}
  * @requires {@link external:pino-multi-stream}
- * @requires {@link external:debug}
  * @requires config/logger
  */
 

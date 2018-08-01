@@ -3,7 +3,7 @@ const camo = require('camo');
 const util = require('util');
 const proxyquire = require('proxyquire');
 const jsonwebtoken = require('jsonwebtoken');
-const { User } = require('../models/users');
+const User = require('../models/users');
 const config = require('../config/api');
 const { ApiError, UnauthorizedAccessError } = require('../models/errors');
 

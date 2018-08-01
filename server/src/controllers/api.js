@@ -49,6 +49,7 @@ controller.logout = (req, res) => res.status(204).end();
  * @method refreshToken
  * @param  {external:Request}  req - Request received
  * @param  {external:Response} res - Response to send
+ * @param  {nextMiddleware}    next  - Callback to pass control to next middleware
  */
 controller.refreshToken = (req, res, next) => {
   userService.refreshToken(req.user, req.headers[refreshTokenHeader])

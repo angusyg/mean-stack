@@ -3,12 +3,16 @@
  * @module models/users
  * @requires {@link external:mongoose}
  * @requires {@link external:bcrypt}
+ * @requires {@link external:express-restify-mongoose}
  * @requires config/app
+ * @requires config/api
  */
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const restify = require('express-restify-mongoose');
 const config = require('../config/app');
+const apiCfg = require('../config/api');
 
 const Schema = mongoose.Schema;
 
@@ -88,7 +92,7 @@ const UserSchema = new Schema({
  * @method preSave
  * @private
  */
-UserSchema.pre('save', (next) => {
+UserSchema.pre('save', function(next) {
   if (this.isModified('password')) this.password = bcrypt.hashSync(this.password, config.app.saltFactor);
   next();
 });
@@ -99,12 +103,28 @@ UserSchema.pre('save', (next) => {
  * @param  {string}           candidatePassword - Candidate password
  * @return {Promise<boolean>} true if candidate password match, false if not
  */
-UserSchema.methods.comparePassword = candidatePassword => new Promise((resolve) => {
-  bcrypt.compare(candidatePassword, this.password)
-    .then(match => resolve(match));
-});
-
-module.exports = {
-  UserSchema,
-  User: mongoose.model('User', UserSchema),
+UserSchema.methods.comparePassword = function(candidatePassword) {
+  new Promise((resolve) => {
+    bcrypt.compare(candidatePassword, this.password)
+      .then(match => resolve(match));
+  });
 };
+
+/**
+ * Configures REST Users endpoint
+ * @method restify
+ * @static
+ * @param  {external:Router} router - Express Router
+ */
+UserSchema.statics.restify = function(router, preMiddleware) {
+  const options = Object.assign({}, apiCfg.restResourceOptions);
+  // Endpoint path
+  options.name = 'Users';
+  // Filtered properties
+  options.private.push('password', 'refreshToken');
+  // Adds pre middleware if needed
+  if (preMiddleware) options.preMiddleware = preMiddleware;
+  restify.serve(router, this, options);
+};
+
+module.exports = mongoose.model('User', UserSchema);

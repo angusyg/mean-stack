@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Creates log folder if it does not exists
-const logFolder = process.env.LOG_FOLDER || path.join(__dirname, '..', '..', 'logs');
+const logFolder = process.env.LOG_FOLDER || path.join(__dirname, '../../logs');
 if (!fs.existsSync(logFolder)) fs.mkdirSync(logFolder);
 
 /**
@@ -46,22 +46,6 @@ const logger = {
    * @inner
    */
   debugLevel: 'debug',
-
-  /**
-   * Debug base namespace
-   * @type {string}
-   * @default nean:
-   * @inner
-   */
-  debugBaseNs: 'nean:',
-
-  /**
-   * Default mapping between debug namespaces and level
-   * @type {string}
-   * @default { 'nean:*': 'debug' }
-   * @inner
-   */
-  debugMapNs: { 'nean:*': 'debug' },
 };
 
 module.exports = logger;

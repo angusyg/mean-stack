@@ -8,8 +8,8 @@
 const mongoose = require('mongoose');
 const logger = require('../helpers/logger');
 
-const server = process.env.DB_URL || '127.0.0.1:27017';
-const database = process.env.DB_NAME || 'nean';
+const server = process.env.DB_URL || '127.0.0.1';
+const database = process.env.DB_NAME || 'mean';
 
 /**
  * Connect app to MongoDB database
