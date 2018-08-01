@@ -14,48 +14,62 @@ const passport = require('passport');
 const { Strategy, ExtractJwt } = require('passport-jwt');
 const { JsonWebTokenError, TokenExpiredError } = require('jsonwebtoken');
 const { tokenSecretKey } = require('../config/api');
-const User  = require('../models/users');
+const User = require('../models/users');
 const { UnauthorizedAccessError, JwtTokenExpiredError, NoJwtTokenError, JwtTokenSignatureError } = require('../models/errors');
 const logger = require('../helpers/logger');
 
-// Registers JWT strategy authentication
-passport.use(new Strategy({
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: tokenSecretKey,
-}, (jwtPayload, cb) => {
+const helper = {};
+
+/**
+ * Callback function on authentication success
+ * @function strategyCallback
+ * @private
+ * @param  {Object}   jwtPayload - Extracted payload from JWT token
+ * @param  {Callback} cb         - Callback function
+ */
+const strategyCallback = (jwtPayload, cb) => {
   User.findOne({ login: jwtPayload.login })
     .then((user) => {
       if (!user) return cb(null, false);
       return cb(null, user);
     })
     .catch(err => cb(err));
-}));
-
-module.exports = {
-  /**
-   * Initializes passport middleware on request
-   * @function initialize
-   */
-  initialize: () => passport.initialize(),
-
-  /**
-   * Authenticates User from authorization header and JWT
-   * @function authenticate
-   * @param  {external:Request}  req  - Request received
-   * @param  {external:Response} res  - Response to send
-   * @param  {nextMiddleware}    next - Callback to pass control to next middleware
-   */
-  authenticate: (req, res, next) => passport.authenticate('jwt', { session: false }, (err, user, info) => {
-    logger.debug(`Passport authentication done: - err = '${err}' - info = '${info}' - user = '${user}'`);
-    if (err) return next(err);
-    if (info) {
-      if (info instanceof TokenExpiredError) return next(new JwtTokenExpiredError());
-      if (info instanceof JsonWebTokenError) return next(new JwtTokenSignatureError());
-      if (info instanceof Error && info.message === 'No auth token') return next(new NoJwtTokenError());
-      return next(new UnauthorizedAccessError());
-    }
-    if (user === null || user === false) return next(new UnauthorizedAccessError('USER_NOT_FOUND', 'No user found for login in JWT Token'));
-    req.user = user;
-    return next();
-  })(req, res, next),
 };
+
+// Authentication passport strategy
+const strategy = new Strategy({
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: tokenSecretKey,
+}, strategyCallback);
+
+// Registers JWT strategy authentication
+passport.use(strategy);
+
+/**
+ * Initializes passport middleware on request
+ * @method initialize
+ */
+helper.initialize = () => passport.initialize();
+
+/**
+ * Authenticates User from authorization header and JWT
+ * @method authenticate
+ * @param  {external:Request}  req  - Request received
+ * @param  {external:Response} res  - Response to send
+ * @param  {nextMiddleware}    next - Callback to pass control to next middleware
+ */
+helper.authenticate = (req, res, next) => passport.authenticate('jwt', { session: false }, (err, user, info) => {
+  logger.debug(`Passport authentication done: - err = '${err}' - info = '${info}' - user = '${user}'`);
+  if (err) return next(err);
+  if (info) {
+    if (info instanceof TokenExpiredError) return next(new JwtTokenExpiredError());
+    if (info instanceof JsonWebTokenError) return next(new JwtTokenSignatureError());
+    if (info instanceof Error && info.message === 'No auth token') return next(new NoJwtTokenError());
+    return next(new UnauthorizedAccessError());
+  }
+  if (user === null || user === false) return next(new UnauthorizedAccessError('USER_NOT_FOUND', 'No user found for login in JWT Token'));
+  req.user = user;
+  return next();
+})(req, res, next);
+
+module.exports = helper;
