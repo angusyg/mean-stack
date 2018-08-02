@@ -1,3 +1,5 @@
+/* eslint import/no-extraneous-dependencies: 0 */
+
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const request = require('supertest');
@@ -14,7 +16,7 @@ const jwtVerify = util.promisify(jsonwebtoken.verify);
 module.exports = (app, config) => {
   describe('Base endpoints integration tests', () => {
     describe('GET /urlnotfound', () => {
-      it('returns a 404 error', (done) => {
+      it('ERROR: should return a 404 error', (done) => {
         request(app)
           .get('/notfound')
           .end((err, res) => {
@@ -31,32 +33,30 @@ module.exports = (app, config) => {
     });
 
     describe('POST /api/login', () => {
+      const userTest = {
+        login: 'TEST',
+        password: 'TEST',
+        roles: ['USER'],
+      };
+
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            User.create({
-                login: 'test',
-                password: 'test',
-                roles: ['USER'],
-              })
-              .save()
-              .then(() => done());
-          });
+        User.create(userTest)
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
-      it('OK: returns authentication tokens', (done) => {
+      it('OK: should return authentication tokens', (done) => {
         request(app)
           .post('/api/login')
           .send({
-            login: 'test',
-            password: 'test',
+            login: userTest.login,
+            password: userTest.password,
           })
           .end(async (err, res) => {
             expect(res.statusCode).to.equal(200);
@@ -66,7 +66,9 @@ module.exports = (app, config) => {
             expect(res.body.refreshToken).to.match(uuid);
             expect(res.body).to.have.own.property('accessToken');
             try {
-              await jwtVerify(res.body.accessToken, config.tokenSecretKey);
+              const payload = await jwtVerify(res.body.accessToken, config.tokenSecretKey);
+              expect(payload).to.have.own.property('login', userTest.login);
+              expect(payload).to.have.own.property('roles').to.be.an('array').to.have.lengthOf(1).to.include(userTest.roles[0]);
               done();
             } catch (error) {
               done(error);
@@ -74,12 +76,12 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns bad login error', (done) => {
+      it('ERROR: should return a bad login error', (done) => {
         request(app)
           .post('/api/login')
           .send({
-            login: 'test1',
-            password: 'test',
+            login: 'BADLOGIN',
+            password: userTest.password,
           })
           .end((err, res) => {
             expect(res.statusCode).to.equal(401);
@@ -93,12 +95,12 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns bad password error', (done) => {
+      it('ERROR: should return a bad password error', (done) => {
         request(app)
           .post('/api/login')
           .send({
-            login: 'test',
-            password: 'test1',
+            login: userTest.login,
+            password: 'BADPASSWORD',
           })
           .end((err, res) => {
             expect(res.statusCode).to.equal(401);
@@ -114,55 +116,45 @@ module.exports = (app, config) => {
     });
 
     describe('GET /api/refresh', () => {
-      let accessTokenBadLogin;
-      let accessTokenBadRefresh;
-      let accessToken;
-      let refreshToken;
+      const refreshToken = uuidv4();
+      const userTest = {
+        login: 'TEST',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken,
+      };
+      const userTestBadRefresh = {
+        login: 'BADREFRESH',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken: 'BADREFRESH',
+      };
+      const userTestBadLogin = {
+        login: 'BADLOGIN',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken,
+      };
+      const accessToken = jsonwebtoken.sign(userTest, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+      const accessTokenBadRefresh = jsonwebtoken.sign(userTestBadRefresh, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+      const accessTokenBadLogin = jsonwebtoken.sign(userTestBadLogin, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
 
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            accessToken = jsonwebtoken.sign({
-              login: 'test',
-              roles: ['USER'],
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            accessTokenBadRefresh = jsonwebtoken.sign({
-              login: 'test1',
-              roles: ['USER'],
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            accessTokenBadLogin = jsonwebtoken.sign({
-              login: 'test2',
-              roles: ['USER'],
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            refreshToken = uuidv4();
-
-            Promise.all([
-              User.create({
-                login: 'test',
-                password: 'test',
-                roles: ['USER'],
-                refreshToken,
-              })
-              .save(),
-              User.create({
-                login: 'test1',
-                password: 'test1',
-                roles: ['USER'],
-                refreshToken: '',
-              })
-              .save(),
-            ]).then(() => done());
-          });
+        Promise.all([
+            User.create(userTest),
+            User.create(userTestBadRefresh),
+          ])
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
-      it('OK: returns an access token', (done) => {
+      it('OK: should return an access token', (done) => {
         request(app)
           .get('/api/refresh')
           .set(config.accessTokenHeader, `bearer ${accessToken}`)
@@ -173,7 +165,9 @@ module.exports = (app, config) => {
             expect(res.body).to.be.an('object');
             expect(res.body).to.have.own.property('accessToken');
             try {
-              await jwtVerify(res.body.accessToken, config.tokenSecretKey);
+              const payload = await jwtVerify(res.body.accessToken, config.tokenSecretKey);
+              expect(payload).to.have.own.property('login', userTest.login);
+              expect(payload).to.have.own.property('roles').to.be.an('array').to.have.lengthOf(1).to.include(userTest.roles[0]);
               done();
             } catch (error) {
               done(error);
@@ -181,7 +175,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns an unauthorized error', (done) => {
+      it('ERROR: should return an unauthorized error', (done) => {
         request(app)
           .get('/api/refresh')
           .set(config.accessTokenHeader, `bearer ${accessTokenBadRefresh}`)
@@ -198,7 +192,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns an user not found error', (done) => {
+      it('ERROR: should return an user not found error', (done) => {
         request(app)
           .get('/api/refresh')
           .set(config.accessTokenHeader, `bearer ${accessTokenBadLogin}`)
@@ -215,7 +209,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns a missing refresh token error', (done) => {
+      it('ERROR: should return a missing refresh token error', (done) => {
         request(app)
           .get('/api/refresh')
           .set(config.accessTokenHeader, `bearer ${accessToken}`)
@@ -232,46 +226,43 @@ module.exports = (app, config) => {
       });
     });
 
-    describe('GET /logout', () => {
-      let accessToken;
-      let accessTokenBadSignature;
-      let accessTokenExpired;
+    describe('GET /api/logout', () => {
+      const refreshToken = uuidv4();
+      const userTest = {
+        login: 'TEST',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken,
+      };
+      const userTestBadRefresh = {
+        login: 'BADREFRESH',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken: 'BADREFRESH',
+      };
+      const userTestBadLogin = {
+        login: 'BADLOGIN',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken,
+      };
+      const accessToken = jsonwebtoken.sign(userTest, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+      const accessTokenBadSignature = jsonwebtoken.sign(userTestBadRefresh, ' ', { expiresIn: config.accessTokenExpirationTime });
+      const accessTokenExpired = jsonwebtoken.sign(userTestBadLogin, config.tokenSecretKey, { expiresIn: 0 });
 
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            accessToken = jsonwebtoken.sign({
-              login: 'test',
-              roles: ['USER'],
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            accessTokenBadSignature = jsonwebtoken.sign({
-              login: 'test',
-              roles: ['USER'],
-            }, ' ', { expiresIn: config.accessTokenExpirationTime });
-            accessTokenExpired = jsonwebtoken.sign({
-              login: 'test',
-              roles: ['USER'],
-            }, config.tokenSecretKey, { expiresIn: 0 });
-
-            User.create({
-                login: 'test',
-                password: 'test',
-                roles: ['USER'],
-                refreshToken: '',
-              })
-              .save()
-              .then(() => done());
-          });
+        User.create(userTest)
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
-      it('OK: returns no content', (done) => {
+      it('OK: should return no content', (done) => {
         request(app)
           .get('/api/logout')
           .set(config.accessTokenHeader, `bearer ${accessToken}`)
@@ -283,7 +274,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns a no token error', (done) => {
+      it('ERROR: should return a no token error', (done) => {
         request(app)
           .get('/api/logout')
           .end((err, res) => {
@@ -297,7 +288,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns an invalid token signature error', (done) => {
+      it('ERROR: should return an invalid token signature error', (done) => {
         request(app)
           .get('/api/logout')
           .set(config.accessTokenHeader, `bearer ${accessTokenBadSignature}`)
@@ -312,7 +303,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns an expired token error', (done) => {
+      it('ERROR: should return an expired token error', (done) => {
         request(app)
           .get('/api/logout')
           .set(config.accessTokenHeader, `bearer ${accessTokenExpired}`)
@@ -328,46 +319,43 @@ module.exports = (app, config) => {
       });
     });
 
-    describe('GET /validate', () => {
-      let accessToken;
-      let accessTokenBadSignature;
-      let accessTokenExpired;
+    describe('GET /api/validate', () => {
+      const refreshToken = uuidv4();
+      const userTest = {
+        login: 'TEST',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken,
+      };
+      const userTestBadRefresh = {
+        login: 'BADREFRESH',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken: 'BADREFRESH',
+      };
+      const userTestBadLogin = {
+        login: 'BADLOGIN',
+        password: 'PASSWORD',
+        roles: ['USER'],
+        refreshToken,
+      };
+      const accessToken = jsonwebtoken.sign(userTest, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+      const accessTokenBadSignature = jsonwebtoken.sign(userTestBadRefresh, ' ', { expiresIn: config.accessTokenExpirationTime });
+      const accessTokenExpired = jsonwebtoken.sign(userTestBadLogin, config.tokenSecretKey, { expiresIn: 0 });
 
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            accessToken = jsonwebtoken.sign({
-              login: 'test',
-              roles: ['USER'],
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            accessTokenBadSignature = jsonwebtoken.sign({
-              login: 'test',
-              roles: ['USER'],
-            }, ' ', { expiresIn: config.accessTokenExpirationTime });
-            accessTokenExpired = jsonwebtoken.sign({
-              login: 'test',
-              roles: ['USER'],
-            }, config.tokenSecretKey, { expiresIn: 0 });
-
-            User.create({
-                login: 'test',
-                password: 'test',
-                roles: ['USER'],
-                refreshToken: '',
-              })
-              .save()
-              .then(() => done());
-          });
+        User.create(userTest)
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
-      it('OK: returns no content', (done) => {
+      it('OK: should return no content', (done) => {
         request(app)
           .get('/api/validate')
           .set(config.accessTokenHeader, `bearer ${accessToken}`)
@@ -379,7 +367,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns a no token error', (done) => {
+      it('ERROR: should return a no token error', (done) => {
         request(app)
           .get('/api/validate')
           .end((err, res) => {
@@ -393,7 +381,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns an invalid token signature error', (done) => {
+      it('ERROR: should return an invalid token signature error', (done) => {
         request(app)
           .get('/api/validate')
           .set(config.accessTokenHeader, `bearer ${accessTokenBadSignature}`)
@@ -408,7 +396,7 @@ module.exports = (app, config) => {
           });
       });
 
-      it('ERROR: returns an expired token error', (done) => {
+      it('ERROR: should return an expired token error', (done) => {
         request(app)
           .get('/api/validate')
           .set(config.accessTokenHeader, `bearer ${accessTokenExpired}`)
@@ -421,6 +409,133 @@ module.exports = (app, config) => {
             expect(res.body).to.have.own.property('reqId');
             done();
           });
+      });
+    });
+
+    describe('POST /api/log', () => {
+      it('OK: Trace level, should return no content', (done) => {
+        request(app)
+        .post('/api/log/trace')
+        .end((err, res) => {
+          expect(res.statusCode).to.equal(204);
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.be.empty;
+          done();
+        });
+      });
+
+      it('OK: Debug level, should return no content', (done) => {
+        request(app)
+          .post('/api/log/debug')
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(204);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.be.empty;
+            done();
+          });
+      });
+
+      it('OK: Info level, should return no content', (done) => {
+        request(app)
+          .post('/api/log/info')
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(204);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.be.empty;
+            done();
+          });
+      });
+
+      it('OK: Warn level, should return no content', (done) => {
+        request(app)
+          .post('/api/log/warn')
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(204);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.be.empty;
+            done();
+          });
+      });
+
+      it('OK: Error level, should return no content', (done) => {
+        request(app)
+          .post('/api/log/error')
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(204);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.be.empty;
+            done();
+          });
+      });
+
+      it('OK: Fatal level, should return no content', (done) => {
+        request(app)
+          .post('/api/log/fatal')
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(204);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.be.empty;
+            done();
+          });
+      });
+
+      it('ERROR: should return a 500 error', (done) => {
+        request(app)
+          .post('/api/log/xxx')
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(500);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
+            expect(res.body).to.have.own.property('message', 'xxx is not a valid log level');
+            expect(res.body).to.have.own.property('reqId');
+            expect(res.body.reqId).to.match(uuid);
+            done();
+          });
+      });
+    });
+
+    describe('OPTIONS /api/*', () => {
+      it('OK: Deactivated CORS, should return no content', (done) => {
+        request(app)
+        .options('/api/login')
+        .end((err, res) => {
+          expect(res.statusCode).to.equal(204);
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.be.empty;
+          done();
+        });
+      });
+
+      it('OK: Activated CORS, should return no content', (done) => {
+        process.env.CORS_ORIGINS = ['localhost'];
+        request(app)
+        .options('/api/login')
+        .set('origin', 'localhost')
+        .end((err, res) => {
+          process.env.CORS_ORIGINS = undefined;
+          expect(res.statusCode).to.equal(204);
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.be.empty;
+          done();
+        });
+      });
+
+      it('ERROR: should return a cors error', (done) => {
+        process.env.CORS_ORIGINS = ['localhost'];
+        request(app)
+        .options('/api/login')
+        .end((err, res) => {
+          process.env.CORS_ORIGINS = undefined;
+          expect(res.statusCode).to.equal(500);
+          expect(res).to.be.json;
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
+          expect(res.body).to.have.own.property('message', 'Not allowed by CORS');
+          expect(res.body).to.have.own.property('reqId');
+          expect(res.body.reqId).to.match(uuid);
+          done();
+        });
       });
     });
   });

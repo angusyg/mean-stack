@@ -1,4 +1,4 @@
-process.env.DB_FOLDER = 'memory';
+process.env.DB_NAME = 'test-integration';
 process.env.TOKEN_SECRET = 'TOKEN_SECRET';
 
 const config = require('../src/config/api');

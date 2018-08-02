@@ -21,7 +21,7 @@ const connect = () => new Promise((resolve, reject) => {
       logger.info(`Connection opened to DB 'mongodb://${server}/${database}'`);
       resolve(mongoose.connection);
     })
-    .catch((err) => {
+    .catch(/* istanbul ignore next */ (err) => {
       logger.fatal(`Error during DB connection : ${JSON.stringify(err)}`);
       reject(err);
     });

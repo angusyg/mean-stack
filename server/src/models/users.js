@@ -92,7 +92,7 @@ const UserSchema = new Schema({
  * @method preSave
  * @private
  */
-UserSchema.pre('save', function(next) {
+UserSchema.pre('save', function (next) { // eslint-disable-line func-names
   if (this.isModified('password')) this.password = bcrypt.hashSync(this.password, config.app.saltFactor);
   next();
 });
@@ -103,11 +103,11 @@ UserSchema.pre('save', function(next) {
  * @param  {string}           candidatePassword - Candidate password
  * @return {Promise<boolean>} true if candidate password match, false if not
  */
-UserSchema.methods.comparePassword = function(candidatePassword) {
-  new Promise((resolve, reject) => {
+UserSchema.methods.comparePassword = function (candidatePassword) { // eslint-disable-line func-names
+  return new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, this.password)
       .then(match => resolve(match))
-      .catch(err => reject(err));
+      .catch(/* istanbul ignore next */ err => reject(err));
   });
 };
 
@@ -117,14 +117,36 @@ UserSchema.methods.comparePassword = function(candidatePassword) {
  * @static
  * @param  {external:Router} router - Express Router
  */
-UserSchema.statics.restify = function(router, preMiddleware) {
+UserSchema.statics.restify = function (router, preMiddleware) { // eslint-disable-line func-names
   const options = Object.assign({}, apiCfg.restResourceOptions);
   // Endpoint path
   options.name = 'Users';
+
+  // Let pass password field on POST and PUT
+  options.access = (req) => {
+    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') return 'protected';
+    return 'public';
+  };
+
+  // Remove password field on POST result
+  options.postCreate = (req, res, next) => {
+    req.erm.result.password = undefined;
+    next();
+  };
+
+  // Remove password field on POST result
+  options.postUpdate = (req, res, next) => {
+    req.erm.result.password = undefined;
+    next();
+  };
+
   // Filtered properties
-  options.private.push('password', 'refreshToken');
+  options.private.push('refreshToken');
+  options.protected = ['password'];
+
   // Adds pre middleware if needed
   if (preMiddleware) options.preMiddleware = preMiddleware;
+
   restify.serve(router, this, options);
 };
 

@@ -10,23 +10,23 @@ const { ApiError, UnauthorizedAccessError } = require('../models/errors');
 const jwtVerify = util.promisify(jsonwebtoken.verify);
 const expect = chai.expect;
 
-describe('Module services/users', () => {
+describe('Module services/api', () => {
   const refreshToken = '00000000-0000-0000-0000-000000000000';
   const uuidV4Stub = () => refreshToken;
-  let users;
+  let api;
 
   before((done) => {
-    users = proxyquire('./users', { 'uuid/v4': uuidV4Stub });
+    api = proxyquire('./api', { 'uuid/v4': uuidV4Stub });
     done();
   });
 
   it('should export login function', (done) => {
-    expect(users).to.have.own.property('login').to.be.a('function');
+    expect(api).to.have.own.property('login').to.be.a('function');
     done();
   });
 
   it('should export refreshToken function', (done) => {
-    expect(users).to.have.own.property('refreshToken').to.be.a('function');
+    expect(api).to.have.own.property('refreshToken').to.be.a('function');
     done();
   });
 
@@ -39,11 +39,13 @@ describe('Module services/users', () => {
       login: 'BADLOGIN',
       password: 'PASSWORD',
     };
+    let saveStub;
     let findOneStub;
     let findOneAndUpdateStub;
     let comparePasswordStub;
 
     beforeEach((done) => {
+      saveStub = sinon.stub(User.prototype, 'save');
       findOneStub = sinon.stub(User, 'findOne');
       findOneAndUpdateStub = sinon.stub(User, 'findOneAndUpdate');
       comparePasswordStub = sinon.stub(User.prototype, 'comparePassword');
@@ -51,6 +53,7 @@ describe('Module services/users', () => {
     });
 
     afterEach((done) => {
+      saveStub.restore();
       findOneStub.restore();
       findOneAndUpdateStub.restore();
       comparePasswordStub.restore();
@@ -62,8 +65,9 @@ describe('Module services/users', () => {
       findOneStub.withArgs({ login: userTest.login }).resolves(user);
       comparePasswordStub.withArgs(userTest.password).resolves(true);
       findOneAndUpdateStub.withArgs({ _id: user._id }, { refreshToken: uuidV4Stub() }).resolves(Object.assign(user, { refreshToken: uuidV4Stub() }));
+      saveStub.withArgs().resolves();
 
-      users.login(userTest)
+      api.login(userTest)
         .then((tokens) => {
           expect(tokens).to.be.an('object');
           expect(tokens).to.have.own.property('refreshToken', user.refreshToken);
@@ -78,7 +82,7 @@ describe('Module services/users', () => {
     it('login(infos: Object): should reject with a Bad login UnauthorizedAccessError', (done) => {
       findOneStub.withArgs({ login: userTestBadLogin.login }).resolves(null);
 
-      users.login(userTestBadLogin)
+      api.login(userTestBadLogin)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
@@ -96,7 +100,7 @@ describe('Module services/users', () => {
       findOneStub.withArgs({ login: userTest.login }).resolves(user);
       comparePasswordStub.withArgs(userTest.password).resolves(false);
 
-      users.login(userTest)
+      api.login(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
@@ -112,7 +116,7 @@ describe('Module services/users', () => {
     it('login(infos: Object): should reject on findOne error', (done) => {
       findOneStub.withArgs({ login: userTest.login }).rejects(new Error('Internal error'));
 
-      users.login(userTest)
+      api.login(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.have.own.property('message', 'Internal error');
@@ -125,7 +129,7 @@ describe('Module services/users', () => {
       findOneStub.withArgs({ login: userTest.login }).resolves(user);
       comparePasswordStub.withArgs(userTest.password).rejects(new Error('Internal error'));
 
-      users.login(userTest)
+      api.login(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.have.own.property('message', 'Internal error');
@@ -137,7 +141,7 @@ describe('Module services/users', () => {
       const user = new User(Object.assign({ refreshToken: uuidV4Stub() }, userTest));
       findOneStub.withArgs({ login: userTest.login }).resolves(user);
 
-      users.refreshToken(userTest, refreshToken)
+      api.refreshToken(userTest, refreshToken)
         .then((token) => {
           expect(token).to.be.an('object');
           expect(token).to.have.own.property('accessToken');
@@ -146,7 +150,7 @@ describe('Module services/users', () => {
               expect(u).to.have.own.property('id', user.id);
               expect(u).to.have.own.property('login', user.login);
               expect(u).to.have.own.property('roles').to.be.an('array').to.have.lengthOf(1).to.include('USER');
-              done()
+              done();
             })
             .catch(err => done(err));
         })
@@ -154,7 +158,7 @@ describe('Module services/users', () => {
     });
 
     it('refreshToken(user: Object, refreshToken: string): should reject with an UnauthorizedAccessError for missing refresh token', (done) => {
-      users.refreshToken(userTest)
+      api.refreshToken(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
@@ -171,7 +175,7 @@ describe('Module services/users', () => {
       const user = new User(userTest);
       findOneStub.withArgs({ login: userTest.login }).resolves(user);
 
-      users.refreshToken(userTest, refreshToken)
+      api.refreshToken(userTest, refreshToken)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
@@ -185,10 +189,9 @@ describe('Module services/users', () => {
     });
 
     it('refreshToken(user: Object, refreshToken: string): should reject with an ApiError for user not being found', (done) => {
-      const user = new User(userTest);
       findOneStub.withArgs({ login: userTest.login }).resolves(null);
 
-      users.refreshToken(userTest, refreshToken)
+      api.refreshToken(userTest, refreshToken)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
@@ -201,10 +204,9 @@ describe('Module services/users', () => {
     });
 
     it('refreshToken(user: Object, refreshToken: string): should reject on findOne error', (done) => {
-      const user = new User(userTest);
       findOneStub.withArgs({ login: userTest.login }).rejects(new Error('Internal error'));
 
-      users.login(userTest)
+      api.login(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.have.own.property('message', 'Internal error');

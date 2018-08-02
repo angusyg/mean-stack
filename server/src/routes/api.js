@@ -5,14 +5,12 @@
  * @requires config/api
  * @requires controllers/api
  * @requires helpers/security
- * @requires helpers/resources
  */
 
 const express = require('express');
-const { loginPath, logoutPath, loggerPath, refreshPath, validateTokenPath, roles } = require('../config/api');
+const { loginPath, logoutPath, loggerPath, refreshPath, validateTokenPath } = require('../config/api');
 const apiController = require('../controllers/api');
-const { requiresLogin } = require('../helpers/security');
-const resources = require('../helpers/resources');
+const { requiresLogin, requiresRole } = require('../helpers/security');
 const User = require('../models/users');
 
 const router = express.Router();
@@ -77,6 +75,6 @@ router.get(refreshPath, requiresLogin, apiController.refreshToken);
 router.get(validateTokenPath, requiresLogin, apiController.validateToken);
 
 // Add of REST User endpoint
-User.restify(router, requiresLogin);
+User.restify(router, [requiresLogin, requiresRole(['USER'])]);
 
 module.exports = router;

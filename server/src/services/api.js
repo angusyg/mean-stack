@@ -1,6 +1,6 @@
 /**
  * @fileoverview User service
- * @module services/users
+ * @module services/api
  * @requires {@link external:uuid/v4}
  * @requires {@link external:jsonwebtoken}
  * @requires config/api
@@ -51,11 +51,12 @@ service.login = infos => new Promise((resolve, reject) => {
             if (!match) reject(new UnauthorizedAccessError('BAD_PASSWORD', 'Bad password'));
             else {
               logger.debug(`Creating new refresh token for user with login '${user.login}'`);
-              User.findOneAndUpdate({ _id: user._id }, { refreshToken: uuidv4() })
-                .then(u => resolve({
-                  refreshToken: u.refreshToken,
+              user.refreshToken = uuidv4();
+              user.save()
+                .then(() => resolve({
+                  refreshToken: user.refreshToken,
                   accessToken: generateAccessToken(user),
-                  settings: u.settings,
+                  settings: user.settings,
                 }));
             }
           })
@@ -82,7 +83,7 @@ service.refreshToken = (user, refreshToken) => new Promise((resolve, reject) => 
           else reject(new UnauthorizedAccessError('REFRESH_NOT_ALLOWED', 'Refresh token has been revoked'));
         } else reject(new ApiError('USER_NOT_FOUND', 'No user found for login in JWT Token'));
       })
-      .catch(err => reject(err));
+      .catch(/* istanbul ignore next */ err => reject(err));
   } else reject(new UnauthorizedAccessError('MISSING_REFRESH_TOKEN', 'Refresh token\'s missing'));
 });
 

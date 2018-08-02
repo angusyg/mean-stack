@@ -3,12 +3,13 @@
  * @module controllers/api
  * @requires config/api
  * @requires helpers/logger
- * @requires services/users
+ * @requires services/api
  */
 
 const { refreshTokenHeader } = require('../config/api');
 const logger = require('../helpers/logger');
-const userService = require('../services/users');
+const apiService = require('../services/api');
+const { ApiError } = require('../models/errors');
 
 const controller = {};
 
@@ -17,10 +18,14 @@ const controller = {};
  * @method logger
  * @param  {external:Request}  req - Request received
  * @param  {external:Response} res - Response to send
+ * @param  {nextMiddleware}    next  - Callback to pass control to next middleware
  */
-controller.logger = (req, res) => {
-  logger[req.params.level](JSON.stringify(req.body));
-  res.status(204).end();
+controller.logger = (req, res, next) => {
+  if (!logger[req.params.level]) next(new ApiError(`${req.params.level} is not a valid log level`));
+  else {
+    logger[req.params.level](JSON.stringify(req.body));
+    res.status(204).end();
+  }
 };
 
 /**
@@ -31,7 +36,7 @@ controller.logger = (req, res) => {
  * @param  {nextMiddleware}     next  - Callback to pass control to next middleware
  */
 controller.login = (req, res, next) => {
-  userService.login(req.body)
+  apiService.login(req.body)
     .then(tokens => res.status(200).json(tokens))
     .catch(err => next(err));
 };
@@ -52,7 +57,7 @@ controller.logout = (req, res) => res.status(204).end();
  * @param  {nextMiddleware}    next  - Callback to pass control to next middleware
  */
 controller.refreshToken = (req, res, next) => {
-  userService.refreshToken(req.user, req.headers[refreshTokenHeader])
+  apiService.refreshToken(req.user, req.headers[refreshTokenHeader])
     .then(token => res.status(200).json(token))
     .catch(err => next(err));
 };

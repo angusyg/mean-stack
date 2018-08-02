@@ -96,7 +96,8 @@ describe('Module models/users', () => {
       User.restify(router);
       expect(restifyStub.calledOnce).to.be.true;
       expect(restifyStub.getCall(0).args[2]).to.have.own.property('name', 'Users');
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['password', 'refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('protected').to.include.members(['password']);
       expect(restifyStub.getCall(0).args[2]).to.not.have.property('preMiddleware').to.be.true;
       done();
     });
@@ -106,7 +107,8 @@ describe('Module models/users', () => {
       User.restify(router, pm);
       expect(restifyStub.calledOnce).to.be.true;
       expect(restifyStub.getCall(0).args[2]).to.have.own.property('name', 'Users');
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['password', 'refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.have.own.property('protected').to.include.members(['password']);
       expect(restifyStub.getCall(0).args[2]).to.have.own.property('preMiddleware', pm);
       done();
     });

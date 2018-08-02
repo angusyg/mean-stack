@@ -33,7 +33,7 @@ const strategyCallback = (jwtPayload, cb) => {
       if (!user) return cb(null, false);
       return cb(null, user);
     })
-    .catch(err => cb(err));
+    .catch(/* istanbul ignore next */ err => cb(err));
 };
 
 // Authentication passport strategy
@@ -65,6 +65,7 @@ helper.authenticate = (req, res, next) => passport.authenticate('jwt', { session
     if (info instanceof TokenExpiredError) return next(new JwtTokenExpiredError());
     if (info instanceof JsonWebTokenError) return next(new JwtTokenSignatureError());
     if (info instanceof Error && info.message === 'No auth token') return next(new NoJwtTokenError());
+    /* istanbul ignore next */
     return next(new UnauthorizedAccessError());
   }
   if (user === null || user === false) return next(new UnauthorizedAccessError('USER_NOT_FOUND', 'No user found for login in JWT Token'));

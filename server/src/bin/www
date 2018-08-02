@@ -79,6 +79,7 @@ server.on('error', onError);
 function gracefulShutdown() {
   logger.info('Closing application server ...');
 
+  app.get('db').close();
   server.close(() => {
     logger.info('Application server closed');
     process.exit(0);

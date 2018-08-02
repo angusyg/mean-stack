@@ -1,3 +1,5 @@
+/* eslint import/no-extraneous-dependencies: 0 */
+
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const request = require('supertest');
@@ -9,7 +11,7 @@ const expect = chai.expect;
 
 function compareUser(u1, u2) {
   return u1.login === u2.login &&
-    u1._id === u2._id &&
+    u1._id === u2.id &&
     u1.roles.sort().toString() === u2.roles.sort().toString();
 }
 
@@ -20,146 +22,166 @@ function compareNoIdUser(user1, u2) {
 
 module.exports = (app, config) => {
   describe('User resource integration tests', () => {
-    before((done) => {
-      app.get('db')
-        .dropDatabase()
-        .then(() => done());
-    });
-
-    after((done) => {
-      app.get('db')
-        .dropDatabase()
-        .then(() => done());
-    });
-
-    describe('GET /api/users', () => {
-      let user1;
-      let user2;
+    describe('GET /api/Users', () => {
+      const userTest1 = {
+        login: 'TEST1',
+        password: 'TEST1',
+        roles: ['USER'],
+      };
+      const userTest2 = {
+        login: 'TEST2',
+        password: 'TEST2',
+        roles: ['TEST'],
+      };
       let accessTokenUser1;
       let accessTokenUser2;
 
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            user1 = {
-              login: 'test1',
-              password: 'test1',
-              roles: ['USER'],
-            };
-            accessTokenUser1 = jsonwebtoken.sign({
-              login: user1.login,
-              roles: user1.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-
-            user2 = {
-              login: 'test2',
-              password: 'test2',
-              roles: ['TEST'],
-            };
-            accessTokenUser2 = jsonwebtoken.sign({
-              login: user2.login,
-              roles: user2.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-
-            Promise.all([
-              User.create(user1).save(),
-              User.create(user2).save(),
-            ]).then((res) => {
-              user1._id = res[0]._id;
-              user2._id = res[1]._id;
-              done();
-            });
-          });
+        Promise.all([
+            User.create(userTest1),
+            User.create(userTest2),
+          ])
+          .then((res) => {
+            userTest1.id = res[0]._id.toString();
+            userTest2.id = res[1]._id.toString();
+            accessTokenUser1 = jsonwebtoken.sign(userTest1, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            accessTokenUser2 = jsonwebtoken.sign(userTest2, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            done();
+          })
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       it('OK: returns a list of users', (done) => {
         request(app)
-          .get('/api/users')
+          .get('/api/Users')
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(200);
             expect(res).to.be.json;
-            expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('list');
-            expect(res.body.list).to.be.an('array').to.have.lengthOf(2);
-            expect(res.body.list.some(element => compareUser(element, user1))).to.be.true;
-            expect(res.body.list.some(element => compareUser(element, user2))).to.be.true;
+            expect(res.body).to.be.an('array').to.have.lengthOf(2);
+            expect(res.body.some(element => compareUser(element, userTest1))).to.be.true;
+            expect(res.body.some(element => compareUser(element, userTest2))).to.be.true;
             done();
           });
       });
 
-      it('OK: returns a list of users ordered by login inversed', (done) => {
+      it('OK: Sort reversed, returns a list of users ordered by reversed login', (done) => {
         request(app)
-          .get('/api/users?sort=-login')
+          .get('/api/Users?sort=-login')
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(200);
             expect(res).to.be.json;
-            expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('list');
-            expect(res.body.list).to.be.an('array').to.have.lengthOf(2);
-            expect(compareUser(res.body.list[0], user2)).to.be.true;
-            expect(compareUser(res.body.list[1], user1)).to.be.true;
+            expect(res.body).to.be.an('array').to.have.lengthOf(2);
+            expect(compareUser(res.body[0], userTest2)).to.be.true;
+            expect(compareUser(res.body[1], userTest1)).to.be.true;
             done();
           });
       });
 
-      it('OK: returns a list of users ordered by login', (done) => {
+      it('OK: Sort, returns a list of users ordered by login', (done) => {
         request(app)
-          .get('/api/users?sort=login')
+          .get('/api/Users?sort=login')
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(200);
             expect(res).to.be.json;
-            expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('list');
-            expect(res.body.list).to.be.an('array').to.have.lengthOf(2);
-            expect(compareUser(res.body.list[0], user1)).to.be.true;
-            expect(compareUser(res.body.list[1], user2)).to.be.true;
+            expect(res.body).to.be.an('array').to.have.lengthOf(2);
+            expect(compareUser(res.body[0], userTest1)).to.be.true;
+            expect(compareUser(res.body[1], userTest2)).to.be.true;
             done();
           });
       });
 
-      it('OK: returns a list of users with first skipped', (done) => {
+      it('OK: Skip, returns a list of users with first skipped', (done) => {
         request(app)
-          .get('/api/users?sort=login&skip=1')
+          .get('/api/Users?sort=login&skip=1')
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(200);
             expect(res).to.be.json;
-            expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('list');
-            expect(res.body.list).to.be.an('array').to.have.lengthOf(1);
-            expect(compareUser(res.body.list[0], user2)).to.be.true;
+            expect(res.body).to.be.an('array').to.have.lengthOf(1);
+            expect(compareUser(res.body[0], userTest2)).to.be.true;
             done();
           });
       });
 
-      it('OK: returns a list of users limited to 1', (done) => {
+      it('OK: Limit, returns a list of users limited to 1', (done) => {
         request(app)
-          .get('/api/users?sort=login&limit=1')
+          .get('/api/Users?sort=login&limit=1')
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(200);
             expect(res).to.be.json;
-            expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('list');
-            expect(res.body.list).to.be.an('array').to.have.lengthOf(1);
-            expect(compareUser(res.body.list[0], user1)).to.be.true;
+            expect(res.body).to.be.an('array').to.have.lengthOf(1);
+            expect(compareUser(res.body[0], userTest1)).to.be.true;
+            done();
+          });
+      });
+
+      it('OK: Query, returns a list of users filtered on login', (done) => {
+        request(app)
+          .get(`/api/Users?query={"login":"${userTest1.login}"}`)
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(200);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('array').to.have.lengthOf(1);
+            expect(compareUser(res.body[0], userTest1)).to.be.true;
+            done();
+          });
+      });
+
+      it('OK: Select, returns only users login', (done) => {
+        request(app)
+          .get('/api/Users?select=login&limit=1&sort=login')
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(200);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('array').to.have.lengthOf(1);
+            expect(res.body[0]).to.have.property('login', userTest1.login);
+            expect(res.body[0]).to.not.have.property('roles');
+            done();
+          });
+      });
+
+      // it('OK: Populate, returns a list of users with populated settings', (done) => {
+      //   request(app)
+      //     .get('/api/Users?populate=settings')
+      //     .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
+      //     .end((err, res) => {
+      //       expect(res.statusCode).to.equal(200);
+      //       expect(res).to.be.json;
+      //       expect(res.body).to.be.an('array').to.have.lengthOf(1);
+      //       expect(compareUser(res.body[0], userTest1)).to.be.true;
+      //       done();
+      //     });
+      // });
+
+      it('OK: Distinct, returns a list of distincts users login', (done) => {
+        request(app)
+          .get('/api/Users?distinct=login')
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(200);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('array').to.have.lengthOf(2);
+            expect(res.body.some(element => element === userTest1.login)).to.be.true;
+            expect(res.body.some(element => element === userTest2.login)).to.be.true;
             done();
           });
       });
 
       it('ERROR: returns a no token error', (done) => {
         request(app)
-          .get('/api/users')
+          .get('/api/Users')
           .end((err, res) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
@@ -173,7 +195,7 @@ module.exports = (app, config) => {
 
       it('ERROR: returns a forbidden error (bad role)', (done) => {
         request(app)
-          .get('/api/users')
+          .get('/api/Users')
           .set(config.accessTokenHeader, `bearer ${accessTokenUser2}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(403);
@@ -187,69 +209,58 @@ module.exports = (app, config) => {
       });
     });
 
-    describe('GET /api/users/:id', () => {
-      let user1;
-      let user2;
+    describe('GET /api/Users/:id', () => {
+      const userTest1 = {
+        login: 'TEST1',
+        password: 'TEST1',
+        roles: ['USER'],
+      };
+      const userTest2 = {
+        login: 'TEST2',
+        password: 'TEST2',
+        roles: ['TEST'],
+      };
       let accessTokenUser1;
       let accessTokenUser2;
 
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            user1 = {
-              login: 'test1',
-              password: 'test1',
-              roles: ['USER'],
-            };
-            accessTokenUser1 = jsonwebtoken.sign({
-              login: user1.login,
-              roles: user1.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            user2 = {
-              login: 'test2',
-              password: 'test2',
-              roles: ['TEST'],
-            };
-            accessTokenUser2 = jsonwebtoken.sign({
-              login: user2.login,
-              roles: user2.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-
-            Promise.all([
-              User.create(user1).save(),
-              User.create(user2).save(),
-            ]).then((res) => {
-              user1._id = res[0]._id;
-              user2._id = res[1]._id;
-              done();
-            });
-          });
+        Promise.all([
+            User.create(userTest1),
+            User.create(userTest2),
+          ])
+          .then((res) => {
+            userTest1.id = res[0]._id.toString();
+            userTest2.id = res[1]._id.toString();
+            accessTokenUser1 = jsonwebtoken.sign(userTest1, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            accessTokenUser2 = jsonwebtoken.sign(userTest2, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            done();
+          })
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       it('OK: returns a user by id', (done) => {
         request(app)
-          .get(`/api/users/${user2._id}`)
+          .get(`/api/Users/${userTest1.id}`)
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(200);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(compareUser(res.body, user2)).to.be.true;
+            expect(compareUser(res.body, userTest1)).to.be.true;
             done();
           });
       });
 
       it('ERROR: returns a not found resource error', (done) => {
-        const id = 'test';
+        const id = 'xxx';
         request(app)
-          .get(`/api/users/${id}`)
+          .get(`/api/Users/${id}`)
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(404);
@@ -264,7 +275,7 @@ module.exports = (app, config) => {
 
       it('ERROR: returns a no token error', (done) => {
         request(app)
-          .get(`/api/users/${user1._id}`)
+          .get(`/api/Users/${userTest1.id}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
@@ -278,7 +289,7 @@ module.exports = (app, config) => {
 
       it('ERROR: returns a forbidden error (bad role)', (done) => {
         request(app)
-          .get(`/api/users/${user1._id}`)
+          .get(`/api/Users/${userTest1.id}`)
           .set(config.accessTokenHeader, `bearer ${accessTokenUser2}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(403);
@@ -292,68 +303,56 @@ module.exports = (app, config) => {
       });
     });
 
-    describe('POST /api/users', () => {
-      let user1;
-      let user2;
-      let user3;
+    describe('POST /api/Users', () => {
+      const userTest1 = {
+        login: 'TEST1',
+        password: 'TEST1',
+        roles: ['USER'],
+      };
+      const userTest2 = {
+        login: 'TEST2',
+        password: 'TEST2',
+        roles: ['TEST'],
+      };
+      const userTest3 = {
+        login: 'TEST3',
+        password: 'TEST3',
+        roles: ['USER'],
+      };
       let accessTokenUser1;
       let accessTokenUser2;
 
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            user1 = {
-              login: 'test1',
-              password: 'test1',
-              roles: ['USER'],
-            };
-            accessTokenUser1 = jsonwebtoken.sign({
-              login: user1.login,
-              roles: user1.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            user2 = {
-              login: 'test2',
-              password: 'test2',
-              roles: ['TEST'],
-            };
-            accessTokenUser2 = jsonwebtoken.sign({
-              login: user2.login,
-              roles: user2.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            user3 = {
-              login: 'test3',
-              password: 'test3',
-              roles: ['TEST'],
-            };
-
-            Promise.all([
-              User.create(user1).save(),
-              User.create(user2).save(),
-            ]).then((res) => {
-              user1._id = res[0]._id;
-              user2._id = res[1]._id;
-              done();
-            });
-          });
+        Promise.all([
+            User.create(userTest1),
+            User.create(userTest2),
+          ])
+          .then((res) => {
+            userTest1.id = res[0]._id.toString();
+            userTest2.id = res[1]._id.toString();
+            accessTokenUser1 = jsonwebtoken.sign(userTest1, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            accessTokenUser2 = jsonwebtoken.sign(userTest2, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            done();
+          })
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       it('OK: creates a new user', (done) => {
         request(app)
-          .post('/api/users')
-          .send(user3)
+          .post('/api/Users')
+          .send(userTest3)
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(201);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(compareNoIdUser(res.body, user3)).to.be.true;
+            expect(compareNoIdUser(res.body, userTest3)).to.be.true;
             expect(res.body).to.have.own.property('_id');
             done();
           });
@@ -361,8 +360,8 @@ module.exports = (app, config) => {
 
       it('ERROR: returns a no token error', (done) => {
         request(app)
-          .post('/api/users')
-          .send(user3)
+          .post('/api/Users')
+          .send(userTest3)
           .end((err, res) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
@@ -376,8 +375,8 @@ module.exports = (app, config) => {
 
       it('ERROR: returns a forbidden error (bad role)', (done) => {
         request(app)
-          .post('/api/users')
-          .send(user3)
+          .post('/api/Users')
+          .send(userTest3)
           .set(config.accessTokenHeader, `bearer ${accessTokenUser2}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(403);
@@ -390,96 +389,99 @@ module.exports = (app, config) => {
           });
       });
 
-      // it('ERROR: returns an internal error for non unicity on login key', (done) => {
-      //   request(app)
-      //     .post('/api/users')
-      //     .send(user3)
-      //     .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
-      //     .end((err, res) => {
-      //       expect(res.statusCode).to.equal(500);
-      //       expect(res).to.be.json;
-      //       expect(res.body).to.be.an('object');
-      //       expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
-      //       expect(res.body).to.have.own.property('message', 'Can\'t insert key test2, it violates the unique constraint');
-      //       expect(res.body).to.have.own.property('reqId');
-      //       done();
-      //     });
-      // });
-    });
-
-    describe('PUT /api/users/:id', () => {
-      let user1;
-      let user2;
-      let user3;
-      let accessTokenUser1;
-      let accessTokenUser3;
-
-      before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            user1 = {
-              login: 'test1',
-              password: 'test1',
-              roles: ['USER'],
-            };
-            accessTokenUser1 = jsonwebtoken.sign({
-              login: user1.login,
-              roles: user1.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            user2 = {
-              login: 'test2',
-              password: 'test2',
-              roles: ['TEST'],
-            };
-            user3 = {
-              login: 'test3',
-              password: 'test3',
-              roles: ['TEST'],
-            };
-            accessTokenUser3 = jsonwebtoken.sign({
-              login: user3.login,
-              roles: user3.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-
-            Promise.all([
-              User.create(user1).save(),
-              User.create(user2).save(),
-              User.create(user3).save(),
-            ]).then((res) => {
-              user1._id = res[0]._id;
-              user2._id = res[1]._id;
-              user3._id = res[2]._id;
-              done();
-            });
+      it('ERROR: returns an internal error for non unicity on login key', (done) => {
+        request(app)
+          .post('/api/Users')
+          .send(userTest3)
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(500);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
+            expect(res.body).to.have.own.property('message', 'E11000 duplicate key error collection: test-integration.users index: login_1 dup key: { : "TEST3" }');
+            expect(res.body).to.have.own.property('reqId');
+            done();
           });
       });
 
+      it('ERROR: returns an internal error for missing fields', (done) => {
+        request(app)
+          .post('/api/Users')
+          .send({})
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(500);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
+            expect(res.body).to.have.own.property('message', 'User validation failed: password: Path `password` is required., login: Path `login` is required.');
+            expect(res.body).to.have.own.property('reqId');
+            done();
+          });
+      });
+    });
+
+    describe('PATCH /api/Users/:id', () => {
+      const userTest1 = {
+        login: 'TEST1',
+        password: 'TEST1',
+        roles: ['USER'],
+      };
+      const userTest2 = {
+        login: 'TEST2',
+        password: 'TEST2',
+        roles: ['TEST'],
+      };
+      const userTest3 = {
+        login: 'TEST3',
+        password: 'TEST3',
+        roles: ['USER'],
+      };
+      let accessTokenUser1;
+      let accessTokenUser2;
+
+      before((done) => {
+        Promise.all([
+            User.create(userTest1),
+            User.create(userTest2),
+            User.create(userTest3),
+          ])
+          .then((res) => {
+            userTest1.id = res[0]._id.toString();
+            userTest2.id = res[1]._id.toString();
+            userTest3.id = res[2]._id.toString();
+            accessTokenUser1 = jsonwebtoken.sign(userTest1, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            accessTokenUser2 = jsonwebtoken.sign(userTest2, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            done();
+          })
+          .catch(err => done(err));
+      });
+
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       it('OK: updates a user', (done) => {
         const newLogin = 'test2-new';
         request(app)
-          .put(`/api/users/${user2._id}`)
+          .patch(`/api/Users/${userTest3.id}`)
           .send({ login: newLogin })
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
-            expect(res.statusCode).to.equal(204);
-            User.findOne({ _id: user2._id })
-              .then((user) => {
-                expect(user.login).to.be.equal(newLogin);
-                done();
-              });
+            expect(res.statusCode).to.equal(200);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.property('login', newLogin);
+            done();
           });
       });
 
       it('ERROR: returns a no token error', (done) => {
         request(app)
-          .put(`/api/users/${user2._id}`)
+          .patch(`/api/Users/${userTest2.id}`)
           .send({})
           .end((err, res) => {
             expect(res.statusCode).to.equal(401);
@@ -494,9 +496,9 @@ module.exports = (app, config) => {
 
       it('ERROR: returns a forbidden error (bad role)', (done) => {
         request(app)
-          .put(`/api/users/${user2._id}`)
-          .send({})
-          .set(config.accessTokenHeader, `bearer ${accessTokenUser3}`)
+          .patch(`/api/Users/${userTest2.id}`)
+          .send({ login: 'LOGIN' })
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser2}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(403);
             expect(res).to.be.json;
@@ -508,94 +510,78 @@ module.exports = (app, config) => {
           });
       });
 
-      // it('ERROR: returns an internal error for non unicity on login key', (done) => {
-      //   request(app)
-      //     .put(`/api/users/${user3._id}`)
-      //     .send({ login: user1.login })
-      //     .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
-      //     .end((err, res) => {
-      //       expect(res.statusCode).to.equal(500);
-      //       expect(res).to.be.json;
-      //       expect(res.body).to.be.an('object');
-      //       expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
-      //       expect(res.body).to.have.own.property('message', 'Can\'t insert key test1, it violates the unique constraint');
-      //       expect(res.body).to.have.own.property('reqId');
-      //       done();
-      //     });
-      // });
+      it('ERROR: returns an internal error for non unicity on login key', (done) => {
+        request(app)
+          .patch(`/api/Users/${userTest2.id}`)
+          .send({ login: userTest1.login })
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
+          .end((err, res) => {
+            expect(res.statusCode).to.equal(500);
+            expect(res).to.be.json;
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
+            expect(res.body).to.have.own.property('message', 'E11000 duplicate key error collection: test-integration.users index: login_1 dup key: { : "TEST1" }');
+            expect(res.body).to.have.own.property('reqId');
+            done();
+          });
+      });
     });
 
-    describe('DELETE /api/users/:id', () => {
-      let user1;
-      let user2;
-      let user3;
+    describe('DELETE /api/Users/:id', () => {
+      const userTest1 = {
+        login: 'TEST1',
+        password: 'TEST1',
+        roles: ['USER'],
+      };
+      const userTest2 = {
+        login: 'TEST2',
+        password: 'TEST2',
+        roles: ['TEST'],
+      };
+      const userTest3 = {
+        login: 'TEST3',
+        password: 'TEST3',
+        roles: ['TEST'],
+      };
       let accessTokenUser1;
-      let accessTokenUser3;
+      let accessTokenUser2;
 
       before((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => {
-            user1 = {
-              login: 'test1',
-              password: 'test1',
-              roles: ['USER'],
-            };
-            accessTokenUser1 = jsonwebtoken.sign({
-              login: user1.login,
-              roles: user1.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-            user2 = {
-              login: 'test2',
-              password: 'test2',
-              roles: ['TEST'],
-            };
-            user3 = {
-              login: 'test3',
-              password: 'test3',
-              roles: ['TEST'],
-            };
-            accessTokenUser3 = jsonwebtoken.sign({
-              login: user3.login,
-              roles: user3.roles,
-            }, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
-
-            Promise.all([
-              User.create(user1).save(),
-              User.create(user2).save(),
-              User.create(user3).save(),
-            ]).then((res) => {
-              user1._id = res[0]._id;
-              user2._id = res[1]._id;
-              user3._id = res[2]._id;
-              done();
-            });
-          });
+        Promise.all([
+            User.create(userTest1),
+            User.create(userTest2),
+            User.create(userTest3),
+          ])
+          .then((res) => {
+            userTest1.id = res[0]._id.toString();
+            userTest2.id = res[1]._id.toString();
+            userTest3.id = res[2]._id.toString();
+            accessTokenUser1 = jsonwebtoken.sign(userTest1, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            accessTokenUser2 = jsonwebtoken.sign(userTest2, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
+            done();
+          })
+          .catch(err => done(err));
       });
 
       after((done) => {
-        app.get('db')
-          .dropDatabase()
-          .then(() => done());
+        User.remove({})
+          .then(() => done())
+          .catch(err => done(err));
       });
 
       it('OK: deletes a user', (done) => {
         request(app)
-          .delete(`/api/users/${user2._id}`)
+          .delete(`/api/Users/${userTest3.id}`)
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(204);
-            User.findOne({ _id: user2._id })
-              .then((user) => {
-                expect(user).to.be.null;
-                done();
-              });
+            done();
           });
       });
 
       it('ERROR: returns a no token error', (done) => {
         request(app)
-          .delete(`/api/users/${user2._id}`)
+          .delete(`/api/Users/${userTest2.id}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
@@ -609,8 +595,8 @@ module.exports = (app, config) => {
 
       it('ERROR: returns a forbidden error (bad role)', (done) => {
         request(app)
-          .delete(`/api/users/${user2._id}`)
-          .set(config.accessTokenHeader, `bearer ${accessTokenUser3}`)
+          .delete(`/api/Users/${userTest1.id}`)
+          .set(config.accessTokenHeader, `bearer ${accessTokenUser2}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(403);
             expect(res).to.be.json;
@@ -625,7 +611,7 @@ module.exports = (app, config) => {
       it('ERROR: returns a not found resource error', (done) => {
         const id = 'test';
         request(app)
-          .delete(`/api/users/${id}`)
+          .delete(`/api/Users/${id}`)
           .set(config.accessTokenHeader, `bearer ${accessTokenUser1}`)
           .end((err, res) => {
             expect(res.statusCode).to.equal(404);

@@ -49,7 +49,7 @@ app.use(pino({
 // Connection to db
 connect()
   .then(db => app.set('db', db))
-  .catch(() => process.exit(-1));
+  .catch(/* istanbul ignore next */ () => process.exit(-1));
 
 // Security middlewares
 app.use(helmet());

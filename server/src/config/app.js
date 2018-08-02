@@ -34,7 +34,7 @@ const crossOrigin = {
    * @param  {nextMiddleware}  callback  - Callback to pass control to next middleware
    */
   origin(origin, callback) {
-    const whitelistOrigins = [];
+    const whitelistOrigins = process.env.CORS_ORIGINS || [];
     if (whitelistOrigins.length === 0) return callback(null, true);
     if (whitelistOrigins.indexOf(origin) !== -1) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
