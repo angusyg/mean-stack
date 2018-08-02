@@ -27,18 +27,19 @@ describe('Module helpers/security', () => {
   describe('Unit tests', () => {
     const req = { user: { roles: ['USER'] } };
     const res = {};
-    const next = sinon.stub();
-    const initializeStub = sinon.stub(passport, 'initialize');
-    const authenticateStub = sinon.stub(passport, 'authenticate');
+    let next;
+    let initializeStub;
+    let authenticateStub;
 
-    afterEach((done) => {
-      initializeStub.reset();
-      authenticateStub.reset();
-      next.reset();
+    beforeEach((done) => {
+      next = sinon.stub();
+      initializeStub = sinon.stub(passport, 'initialize');
+      authenticateStub = sinon.stub(passport, 'authenticate');
       done();
     });
 
-    after((done) => {
+    afterEach((done) => {
+      next.reset();
       initializeStub.restore();
       authenticateStub.restore();
       done();

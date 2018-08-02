@@ -58,17 +58,21 @@ describe('Module models/errors', () => {
   });
 
   describe('Unit tests', () => {
-    let status;
-    let json;
-    let res;
+    const status = sinon.stub();
+    const json = sinon.spy();
     const req = { id: 'UUID' };
+    let res;
 
     describe('ApiError', () => {
       beforeEach((done) => {
-        status = sinon.stub();
-        json = sinon.spy();
         res = { json, status };
         status.returns(res);
+        done();
+      });
+
+      afterEach((done) => {
+        status.reset();
+        json.resetHistory();
         done();
       });
 

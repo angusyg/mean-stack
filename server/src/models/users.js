@@ -104,9 +104,10 @@ UserSchema.pre('save', function(next) {
  * @return {Promise<boolean>} true if candidate password match, false if not
  */
 UserSchema.methods.comparePassword = function(candidatePassword) {
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     bcrypt.compare(candidatePassword, this.password)
-      .then(match => resolve(match));
+      .then(match => resolve(match))
+      .catch(err => reject(err));
   });
 };
 

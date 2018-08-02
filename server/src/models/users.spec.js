@@ -30,7 +30,7 @@ describe('Module models/users', () => {
     });
 
     after((done) => {
-      restifyStub.restore();
+      restify.serve.restore();
       done();
     });
 

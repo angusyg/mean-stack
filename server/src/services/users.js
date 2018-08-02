@@ -58,9 +58,11 @@ service.login = infos => new Promise((resolve, reject) => {
                   settings: u.settings,
                 }));
             }
-          });
+          })
+          .catch(err => reject(err));
       }
-    });
+    })
+    .catch(err => reject(err));
 });
 
 /**
@@ -79,7 +81,8 @@ service.refreshToken = (user, refreshToken) => new Promise((resolve, reject) => 
           if (refreshToken === u.refreshToken) resolve({ accessToken: generateAccessToken(u) });
           else reject(new UnauthorizedAccessError('REFRESH_NOT_ALLOWED', 'Refresh token has been revoked'));
         } else reject(new ApiError('USER_NOT_FOUND', 'No user found for login in JWT Token'));
-      });
+      })
+      .catch(err => reject(err));
   } else reject(new UnauthorizedAccessError('MISSING_REFRESH_TOKEN', 'Refresh token\'s missing'));
 });
 

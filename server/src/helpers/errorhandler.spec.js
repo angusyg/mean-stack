@@ -21,11 +21,17 @@ describe('Module helpers/errorhandler', () => {
   describe('Unit tests', () => {
     const req = {};
     const res = {};
-    const handleStub = sinon.stub(ApiError, 'handle');
-    const next = sinon.stub();
+    let handleStub;
+    let next;
+
+    beforeEach((done) => {
+      handleStub = sinon.stub(ApiError, 'handle');
+      next = sinon.stub();
+      done();
+    });
 
     afterEach((done) => {
-      handleStub.reset();
+      handleStub.restore();
       next.reset();
       done();
     });

@@ -3,38 +3,15 @@
 const chai = require('chai');
 const sinon = require('sinon');
 const psp = require('passport');
-const proxyquire = require('proxyquire');
 const jwt = require('jsonwebtoken');
 const config = require('../config/api');
 const User = require('../models/users');
 const { UnauthorizedAccessError, JwtTokenExpiredError, NoJwtTokenError, JwtTokenSignatureError } = require('../models/errors');
+const passport = require('./passport');
 
 const expect = chai.expect;
 
 describe('Module helpers/passport', () => {
-  const UserMock = sinon.mock(User);
-  const userTest = {
-    login: 'test',
-    roles: ['USER'],
-  };
-  const unknownUser = {
-    login: 'unknown',
-    roles: ['USER'],
-  };
-  let passport;
-
-  before((done) => {
-    UserMock.expects('findOne').withArgs({ login: userTest.login }).resolves(userTest);
-    UserMock.expects('findOne').withArgs({ login: unknownUser.login }).resolves(null);
-    passport = proxyquire('./passport', { '../models/users': UserMock });
-    done();
-  });
-
-  after((done) => {
-    UserMock.restore();
-    done();
-  });
-
   it('should export initialize function', (done) => {
     expect(passport).to.have.own.property('initialize').to.be.a('function');
     done();
@@ -46,6 +23,14 @@ describe('Module helpers/passport', () => {
   });
 
   describe('Unit tests', () => {
+    const userTest = {
+      login: 'TEST',
+      password: 'TEST',
+    };
+    const unknownUser = {
+      login: 'unknown',
+      password: 'TEST',
+    };
     const accessToken = jwt.sign(userTest, config.tokenSecretKey, { expiresIn: config.accessTokenExpirationTime });
     const accessTokenExpired = jwt.sign(userTest, config.tokenSecretKey, { expiresIn: 0 });
     const accessTokenBadSignature = jwt.sign(userTest, 'SECRET', { expiresIn: config.accessTokenExpirationTime });
@@ -54,15 +39,18 @@ describe('Module helpers/passport', () => {
     const res = {};
     const next = sinon.stub();
     const initializeStub = sinon.stub(psp, 'initialize');
+    const findOneStub = sinon.stub(User, 'findOne');
 
     afterEach((done) => {
       initializeStub.reset();
       next.reset();
+      findOneStub.reset();
       done();
     });
 
     after((done) => {
       initializeStub.restore();
+      findOneStub.restore();
       done();
     });
 
@@ -74,12 +62,14 @@ describe('Module helpers/passport', () => {
 
     it('authenticate(req: Request, res: Response, next: function): should call passport authenticate and put user in request', (done) => {
       req.headers.authorization = `bearer ${accessToken}`;
+      findOneStub.withArgs({ login: userTest.login }).resolves(new User(userTest));
+
       passport.authenticate(req, res, next);
       setTimeout(() => {
-        expect(req).to.have.own.property('user').to.deep.include(userTest);
+        expect(req).to.have.property('user').to.deep.include(userTest);
         expect(next.withArgs().calledOnce).to.be.true;
         done();
-      }, 100);
+      }, 1);
     });
 
     it('authenticate(req: Request, res: Response, next: function): should call passport authenticate and call next with JwtTokenExpiredError', (done) => {
@@ -108,6 +98,8 @@ describe('Module helpers/passport', () => {
 
     it('authenticate(req: Request, res: Response, next: function): should call passport authenticate and call next with UnauthorizedAccessError because user does not exist', (done) => {
       req.headers.authorization = `bearer ${accessTokenUserNotFound}`;
+      findOneStub.withArgs({ login: unknownUser.login }).resolves(null);
+
       passport.authenticate(req, res, next);
       setTimeout(() => {
         expect(next.calledOnce).to.be.true;
@@ -115,7 +107,7 @@ describe('Module helpers/passport', () => {
         expect(next.getCall(0).args[0]).to.have.own.property('code', 'USER_NOT_FOUND');
         expect(next.getCall(0).args[0]).to.have.own.property('message', 'No user found for login in JWT Token');
         done();
-      }, 100);
+      }, 1);
     });
   });
 });
