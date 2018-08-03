@@ -1,13 +1,15 @@
+@import '~bootstrap/scss/bootstrap';
+@import 'assets/fonts/material-icons/material-icons';
+
 html, body {
   height: 100%;
   max-height: 100%;
   background-color: #dbfedb;
-  //background-image: url("./assets/wallpaper2.jpg");
+  background-image: url("./assets/wallpaper4.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-attachment: fixed;
   background-position: center center;
-  //background-blend-mode: luminosity;
 }
 
 .inner-addon {

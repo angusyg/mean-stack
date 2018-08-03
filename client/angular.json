@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "nean-stack": {
+    "mean-stack-client": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
@@ -71,18 +71,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "nean-stack:build"
+            "browserTarget": "mean-stack-client:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "nean-stack:build:production"
+              "browserTarget": "mean-stack-client:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "nean-stack:build"
+            "browserTarget": "mean-stack-client:build"
           }
         },
         "test": {
@@ -116,7 +116,7 @@
         }
       }
     },
-    "nean-stack-e2e": {
+    "mean-stack-client-e2e": {
       "root": "e2e/",
       "projectType": "application",
       "architect": {
@@ -124,11 +124,11 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "nean-stack:serve"
+            "devServerTarget": "mean-stack-client:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "nean-stack:serve:production"
+              "devServerTarget": "mean-stack-client:serve:production"
             }
           }
         },
@@ -144,5 +144,5 @@
       }
     }
   },
-  "defaultProject": "nean-stack"
+  "defaultProject": "mean-stack-client"
 }
