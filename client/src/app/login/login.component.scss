@@ -3,10 +3,11 @@
 
   .card {
     max-width: 330px;
-    background-color: #261d1d66;
+    background-color: #0009;
     color: #ffffff;
     border: none;
     border-radius: .5rem;
+    width: 100%;
 
     .card-body {
       border: none;
@@ -24,20 +25,20 @@
       margin-bottom: 1.25rem;
     }
 
-    .login_form {
+    form {
       padding: 1.25em;
 
-      input[type=text] {
-        margin-bottom: 0;
-        border-bottom-right-radius: 0;
-        border-bottom-left-radius: 0;
-      }
-
-      input[type=password] {
-        margin-bottom: 10px;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-      }
+      // input[type=text] {
+      //   margin-bottom: 0;
+      //   border-bottom-right-radius: 0;
+      //   border-bottom-left-radius: 0;
+      // }
+      //
+      // input[type=password] {
+      //   margin-bottom: 10px;
+      //   border-top-left-radius: 0;
+      //   border-top-right-radius: 0;
+      // }
       .btn {
         width: 100%;
       }

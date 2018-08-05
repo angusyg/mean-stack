@@ -1,0 +1,36 @@
+.signup_panel {
+  padding-top: calc(5%);
+
+  .card {
+    max-width: 330px;
+    background-color: #0009;
+    color: #ffffff;
+    border: none;
+    border-radius: .5rem;
+    width: 100%;
+
+    .card-body {
+      border: none;
+      border-radius: .5rem;
+      padding: 0;
+    }
+
+    img {
+      border-bottom-left-radius: .5rem;
+      border-bottom-right-radius: .5rem;
+      width: 100%;
+    }
+
+    .card-title {
+      margin-bottom: 1.25rem;
+    }
+
+    form {
+      padding: 1.25em;
+
+      .btn {
+        width: 100%;
+      }
+    }
+  }
+}
