@@ -28,12 +28,16 @@ const helper = {};
  * @param  {Callback} cb         - Callback function
  */
 const strategyCallback = (jwtPayload, cb) => {
+  logger.debug(`Passport JWT checking: trying to find user with payload: ${jwtPayload}`);
   User.findOne({ login: jwtPayload.login })
     .then((user) => {
-      if (!user) return cb(null, false);
+      if (!user) {
+        logger.debug(`Passport JWT checking: no user found for payload: ${jwtPayload}`);
+        return cb(null, false);
+      }
       return cb(null, user);
     })
-    .catch(/* istanbul ignore next */ err => cb(err));
+    .catch( /* istanbul ignore next */ err => cb(err));
 };
 
 // Authentication passport strategy

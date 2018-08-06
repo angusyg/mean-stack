@@ -7,8 +7,9 @@
 const { ApiError, NotFoundError } = require('../models/errors');
 
 const errorhandler = {};
+
 /**
- * Catch all non mapped request for error
+ * Catch all non mapped requests for error
  * @method errorNoRouteMapped
  * @param  {external:Error}     req  - Request received
  * @param  {external:Response}  res  - Response to be send

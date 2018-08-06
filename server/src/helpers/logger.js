@@ -13,12 +13,9 @@ const multistream = require('pino-multi-stream').multistream;
 const config = require('../config/logger');
 
 /**
- * Creates streams depending current execution environment
+ * Creates streams depending on current execution environment
  * @function getStreams
  * @private
- * @param  {external:Error}     req  - Request received
- * @param  {external:Response}  res  - Response to be send
- * @param  {nextMiddleware}     next - Callback to pass control to next middleware
  */
 function getStreams() {
   const streams = [];
