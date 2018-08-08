@@ -10,14 +10,13 @@ chai.use(chaiHttp);
 const expect = chai.expect;
 
 function compareUser(u1, u2) {
-  return u1.login === u2.login &&
-    u1._id === u2.id &&
-    u1.roles.sort().toString() === u2.roles.sort().toString();
+  return u1.login === u2.login
+    && u1._id === u2.id
+    && u1.roles.sort().toString() === u2.roles.sort().toString();
 }
 
 function compareNoIdUser(user1, u2) {
-  return user1.login === u2.login &&
-    user1.roles.sort().toString() === u2.roles.sort().toString();
+  return user1.login === u2.login && user1.roles.sort().toString() === u2.roles.sort().toString();
 }
 
 module.exports = (app, config) => {
@@ -186,9 +185,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'NO_TOKEN_FOUND');
-            expect(res.body).to.have.own.property('message', 'No Jwt token found in authorization header');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'NO_TOKEN_FOUND');
+            expect(res.body).to.have.property('message', 'No Jwt token found in authorization header');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -201,9 +200,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(403);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'FORBIDDEN_OPERATION');
-            expect(res.body).to.have.own.property('message', 'Forbidden');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'FORBIDDEN_OPERATION');
+            expect(res.body).to.have.property('message', 'Forbidden');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -266,9 +265,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(404);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'RESOURCE_NOT_FOUND');
-            expect(res.body).to.have.own.property('message', `No resource found with id '${id}'`);
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'RESOURCE_NOT_FOUND');
+            expect(res.body).to.have.property('message', `No resource found with id '${id}'`);
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -280,9 +279,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'NO_TOKEN_FOUND');
-            expect(res.body).to.have.own.property('message', 'No Jwt token found in authorization header');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'NO_TOKEN_FOUND');
+            expect(res.body).to.have.property('message', 'No Jwt token found in authorization header');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -295,9 +294,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(403);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'FORBIDDEN_OPERATION');
-            expect(res.body).to.have.own.property('message', 'Forbidden');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'FORBIDDEN_OPERATION');
+            expect(res.body).to.have.property('message', 'Forbidden');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -353,7 +352,7 @@ module.exports = (app, config) => {
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
             expect(compareNoIdUser(res.body, userTest3)).to.be.true;
-            expect(res.body).to.have.own.property('_id');
+            expect(res.body).to.have.property('_id');
             done();
           });
       });
@@ -366,9 +365,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'NO_TOKEN_FOUND');
-            expect(res.body).to.have.own.property('message', 'No Jwt token found in authorization header');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'NO_TOKEN_FOUND');
+            expect(res.body).to.have.property('message', 'No Jwt token found in authorization header');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -382,9 +381,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(403);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'FORBIDDEN_OPERATION');
-            expect(res.body).to.have.own.property('message', 'Forbidden');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'FORBIDDEN_OPERATION');
+            expect(res.body).to.have.property('message', 'Forbidden');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -398,9 +397,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(500);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
-            expect(res.body).to.have.own.property('message', 'E11000 duplicate key error collection: test-integration.users index: login_1 dup key: { : "TEST3" }');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'INTERNAL_SERVER_ERROR');
+            expect(res.body).to.have.property('message', 'E11000 duplicate key error collection: test-integration.users index: login_1 dup key: { : "TEST3" }');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -414,9 +413,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(500);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
-            expect(res.body).to.have.own.property('message', 'User validation failed: password: Path `password` is required., login: Path `login` is required.');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'INTERNAL_SERVER_ERROR');
+            expect(res.body).to.have.property('message', 'User validation failed: password: Path `password` is required., login: Path `login` is required.');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -487,9 +486,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'NO_TOKEN_FOUND');
-            expect(res.body).to.have.own.property('message', 'No Jwt token found in authorization header');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'NO_TOKEN_FOUND');
+            expect(res.body).to.have.property('message', 'No Jwt token found in authorization header');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -503,9 +502,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(403);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'FORBIDDEN_OPERATION');
-            expect(res.body).to.have.own.property('message', 'Forbidden');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'FORBIDDEN_OPERATION');
+            expect(res.body).to.have.property('message', 'Forbidden');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -519,9 +518,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(500);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'INTERNAL_SERVER_ERROR');
-            expect(res.body).to.have.own.property('message', 'E11000 duplicate key error collection: test-integration.users index: login_1 dup key: { : "TEST1" }');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'INTERNAL_SERVER_ERROR');
+            expect(res.body).to.have.property('message', 'E11000 duplicate key error collection: test-integration.users index: login_1 dup key: { : "TEST1" }');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -586,9 +585,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(401);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'NO_TOKEN_FOUND');
-            expect(res.body).to.have.own.property('message', 'No Jwt token found in authorization header');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'NO_TOKEN_FOUND');
+            expect(res.body).to.have.property('message', 'No Jwt token found in authorization header');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -601,9 +600,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(403);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'FORBIDDEN_OPERATION');
-            expect(res.body).to.have.own.property('message', 'Forbidden');
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'FORBIDDEN_OPERATION');
+            expect(res.body).to.have.property('message', 'Forbidden');
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });
@@ -617,9 +616,9 @@ module.exports = (app, config) => {
             expect(res.statusCode).to.equal(404);
             expect(res).to.be.json;
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.own.property('code', 'RESOURCE_NOT_FOUND');
-            expect(res.body).to.have.own.property('message', `No resource found with id '${id}'`);
-            expect(res.body).to.have.own.property('reqId');
+            expect(res.body).to.have.property('code', 'RESOURCE_NOT_FOUND');
+            expect(res.body).to.have.property('message', `No resource found with id '${id}'`);
+            expect(res.body).to.have.property('reqId');
             done();
           });
       });

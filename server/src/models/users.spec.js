@@ -1,12 +1,10 @@
 /* eslint no-unused-expressions: 0 */
 
 const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 const restify = require('express-restify-mongoose');
 const User = require('./users');
 
-chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 describe('Module models/users', () => {
@@ -75,7 +73,7 @@ describe('Module models/users', () => {
       });
       user.validate((err) => {
         expect(err.errors.login).to.exist;
-        expect(err.errors.login).to.have.own.property('message', 'Path `login` is required.');
+        expect(err.errors.login).to.have.property('message', 'Path `login` is required.');
         done();
       });
     });
@@ -87,7 +85,7 @@ describe('Module models/users', () => {
       });
       user.validate((err) => {
         expect(err.errors.password).to.exist;
-        expect(err.errors.password).to.have.own.property('message', 'Path `password` is required.');
+        expect(err.errors.password).to.have.property('message', 'Path `password` is required.');
         done();
       });
     });
@@ -95,9 +93,9 @@ describe('Module models/users', () => {
     it('restify(router: Router): should add REST User resource to router', (done) => {
       User.restify(router);
       expect(restifyStub.calledOnce).to.be.true;
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('name', 'Users');
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['refreshToken']);
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('protected').to.include.members(['password']);
+      expect(restifyStub.getCall(0).args[2]).to.have.property('name', 'Users');
+      expect(restifyStub.getCall(0).args[2]).to.have.property('private').to.include.members(['refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.have.property('protected').to.include.members(['password']);
       expect(restifyStub.getCall(0).args[2]).to.not.have.property('preMiddleware').to.be.true;
       done();
     });
@@ -106,10 +104,10 @@ describe('Module models/users', () => {
       const pm = sinon.stub();
       User.restify(router, pm);
       expect(restifyStub.calledOnce).to.be.true;
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('name', 'Users');
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('private').to.include.members(['refreshToken']);
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('protected').to.include.members(['password']);
-      expect(restifyStub.getCall(0).args[2]).to.have.own.property('preMiddleware', pm);
+      expect(restifyStub.getCall(0).args[2]).to.have.property('name', 'Users');
+      expect(restifyStub.getCall(0).args[2]).to.have.property('private').to.include.members(['refreshToken']);
+      expect(restifyStub.getCall(0).args[2]).to.have.property('protected').to.include.members(['password']);
+      expect(restifyStub.getCall(0).args[2]).to.have.property('preMiddleware', pm);
       done();
     });
   });

@@ -10,17 +10,17 @@ const expect = chai.expect;
 
 describe('Module helpers/security', () => {
   it('should export initialize function', (done) => {
-    expect(security).to.have.own.property('initialize').to.be.a('function');
+    expect(security).to.have.property('initialize').to.be.a('function');
     done();
   });
 
   it('should export refreshToken function', (done) => {
-    expect(security).to.have.own.property('requiresLogin').to.be.a('function');
+    expect(security).to.have.property('requiresLogin').to.be.a('function');
     done();
   });
 
   it('should export requiresRole function', (done) => {
-    expect(security).to.have.own.property('requiresRole').to.be.a('function');
+    expect(security).to.have.property('requiresRole').to.be.a('function');
     done();
   });
 

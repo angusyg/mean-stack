@@ -25,7 +25,7 @@ const helper = {};
  * @function strategyCallback
  * @private
  * @param  {Object}   jwtPayload - Extracted payload from JWT token
- * @param  {Callback} cb         - Callback function
+ * @param  {Function} cb         - Callback function
  */
 const strategyCallback = (jwtPayload, cb) => {
   logger.debug(`Passport JWT checking: trying to find user with payload: ${jwtPayload}`);
@@ -37,7 +37,7 @@ const strategyCallback = (jwtPayload, cb) => {
       }
       return cb(null, user);
     })
-    .catch( /* istanbul ignore next */ err => cb(err));
+    .catch(/* istanbul ignore next */ err => cb(err));
 };
 
 // Authentication passport strategy

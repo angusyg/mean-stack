@@ -69,7 +69,7 @@ service.login = infos => new Promise((resolve, reject) => {
 /**
  * Refreshes user access token after validating refresh token
  * @method refreshToken
- * @param   {string} accessToken   - JWT token
+ * @param   {string} user          - user to refresh token for
  * @param   {string} refreshToken  - user refresh token
  * @returns {Promise<Object>} new access token
  */

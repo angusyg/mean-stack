@@ -27,12 +27,12 @@ function getStreams() {
     });
     streams.push({
       level: config.debugLevel,
-      stream: fs.createWriteStream(config.debugFile, { flag: 'a' }),
+      stream: fs.createWriteStream(config.debugFile, { flags: 'a' }),
     });
   }
   streams.push({
     level: config.logLevel,
-    stream: fs.createWriteStream(config.logFile, { flag: 'a' }),
+    stream: fs.createWriteStream(config.logFile, { flags: 'a' }),
   });
   return streams;
 }

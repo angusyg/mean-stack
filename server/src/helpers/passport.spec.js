@@ -13,12 +13,12 @@ const expect = chai.expect;
 
 describe('Module helpers/passport', () => {
   it('should export initialize function', (done) => {
-    expect(passport).to.have.own.property('initialize').to.be.a('function');
+    expect(passport).to.have.property('initialize').to.be.a('function');
     done();
   });
 
   it('should export authenticate function', (done) => {
-    expect(passport).to.have.own.property('authenticate').to.be.a('function');
+    expect(passport).to.have.property('authenticate').to.be.a('function');
     done();
   });
 
@@ -104,8 +104,8 @@ describe('Module helpers/passport', () => {
       setTimeout(() => {
         expect(next.calledOnce).to.be.true;
         expect(next.getCall(0).args[0]).to.be.instanceof(UnauthorizedAccessError);
-        expect(next.getCall(0).args[0]).to.have.own.property('code', 'USER_NOT_FOUND');
-        expect(next.getCall(0).args[0]).to.have.own.property('message', 'No user found for login in JWT Token');
+        expect(next.getCall(0).args[0]).to.have.property('code', 'USER_NOT_FOUND');
+        expect(next.getCall(0).args[0]).to.have.property('message', 'No user found for login in JWT Token');
         done();
       }, 1);
     });

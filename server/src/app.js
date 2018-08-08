@@ -51,7 +51,7 @@ connect()
   .then(db => app.set('db', db))
   .catch(/* istanbul ignore next */ () => process.exit(-1));
 
-// Security middlewares
+// Security middleware
 app.use(helmet());
 app.use(cors(appCfg.crossOrigin));
 

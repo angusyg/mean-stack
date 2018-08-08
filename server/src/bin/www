@@ -92,7 +92,7 @@ function gracefulShutdown() {
   }, 5000);
 }
 
-// Catches signals to gracefull quit
+// Catches signals to gracefully quit
 process.on('SIGTERM', gracefulShutdown);
 process.on('SIGINT', gracefulShutdown);
 

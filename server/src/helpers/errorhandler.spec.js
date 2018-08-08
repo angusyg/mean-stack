@@ -9,12 +9,12 @@ const expect = chai.expect;
 
 describe('Module helpers/errorhandler', () => {
   it('should export errorNoRouteMapped function', (done) => {
-    expect(errorhandler).to.have.own.property('errorNoRouteMapped').to.be.a('function');
+    expect(errorhandler).to.have.property('errorNoRouteMapped').to.be.a('function');
     done();
   });
 
   it('should export errorHandler function', (done) => {
-    expect(errorhandler).to.have.own.property('errorHandler').to.be.a('function');
+    expect(errorhandler).to.have.property('errorHandler').to.be.a('function');
     done();
   });
 

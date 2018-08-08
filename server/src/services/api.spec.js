@@ -21,12 +21,12 @@ describe('Module services/api', () => {
   });
 
   it('should export login function', (done) => {
-    expect(api).to.have.own.property('login').to.be.a('function');
+    expect(api).to.have.property('login').to.be.a('function');
     done();
   });
 
   it('should export refreshToken function', (done) => {
-    expect(api).to.have.own.property('refreshToken').to.be.a('function');
+    expect(api).to.have.property('refreshToken').to.be.a('function');
     done();
   });
 
@@ -70,8 +70,8 @@ describe('Module services/api', () => {
       api.login(userTest)
         .then((tokens) => {
           expect(tokens).to.be.an('object');
-          expect(tokens).to.have.own.property('refreshToken', user.refreshToken);
-          expect(tokens).to.have.own.property('accessToken');
+          expect(tokens).to.have.property('refreshToken', user.refreshToken);
+          expect(tokens).to.have.property('accessToken');
           jwtVerify(tokens.accessToken, config.tokenSecretKey)
             .then(() => done())
             .catch(err => done(err));
@@ -87,10 +87,10 @@ describe('Module services/api', () => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
           expect(err).to.be.an.instanceof(UnauthorizedAccessError);
-          expect(err).to.have.own.property('name', 'UnauthorizedAccessError');
-          expect(err).to.have.own.property('statusCode', 401);
-          expect(err).to.have.own.property('code', 'BAD_LOGIN');
-          expect(err).to.have.own.property('message', 'Bad login');
+          expect(err).to.have.property('name', 'UnauthorizedAccessError');
+          expect(err).to.have.property('statusCode', 401);
+          expect(err).to.have.property('code', 'BAD_LOGIN');
+          expect(err).to.have.property('message', 'Bad login');
           done();
         });
     });
@@ -105,10 +105,10 @@ describe('Module services/api', () => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
           expect(err).to.be.an.instanceof(UnauthorizedAccessError);
-          expect(err).to.have.own.property('name', 'UnauthorizedAccessError');
-          expect(err).to.have.own.property('statusCode', 401);
-          expect(err).to.have.own.property('code', 'BAD_PASSWORD');
-          expect(err).to.have.own.property('message', 'Bad password');
+          expect(err).to.have.property('name', 'UnauthorizedAccessError');
+          expect(err).to.have.property('statusCode', 401);
+          expect(err).to.have.property('code', 'BAD_PASSWORD');
+          expect(err).to.have.property('message', 'Bad password');
           done();
         });
     });
@@ -119,7 +119,7 @@ describe('Module services/api', () => {
       api.login(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
-          expect(err).to.have.own.property('message', 'Internal error');
+          expect(err).to.have.property('message', 'Internal error');
           done();
         });
     });
@@ -132,7 +132,7 @@ describe('Module services/api', () => {
       api.login(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
-          expect(err).to.have.own.property('message', 'Internal error');
+          expect(err).to.have.property('message', 'Internal error');
           done();
         });
     });
@@ -144,12 +144,12 @@ describe('Module services/api', () => {
       api.refreshToken(userTest, refreshToken)
         .then((token) => {
           expect(token).to.be.an('object');
-          expect(token).to.have.own.property('accessToken');
+          expect(token).to.have.property('accessToken');
           jwtVerify(token.accessToken, config.tokenSecretKey)
             .then((u) => {
-              expect(u).to.have.own.property('id', user.id);
-              expect(u).to.have.own.property('login', user.login);
-              expect(u).to.have.own.property('roles').to.be.an('array').to.have.lengthOf(1).to.include('USER');
+              expect(u).to.have.property('id', user.id);
+              expect(u).to.have.property('login', user.login);
+              expect(u).to.have.property('roles').to.be.an('array').to.have.lengthOf(1).to.include('USER');
               done();
             })
             .catch(err => done(err));
@@ -163,10 +163,10 @@ describe('Module services/api', () => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
           expect(err).to.be.an.instanceof(UnauthorizedAccessError);
-          expect(err).to.have.own.property('name', 'UnauthorizedAccessError');
-          expect(err).to.have.own.property('statusCode', 401);
-          expect(err).to.have.own.property('code', 'MISSING_REFRESH_TOKEN');
-          expect(err).to.have.own.property('message', 'Refresh token\'s missing');
+          expect(err).to.have.property('name', 'UnauthorizedAccessError');
+          expect(err).to.have.property('statusCode', 401);
+          expect(err).to.have.property('code', 'MISSING_REFRESH_TOKEN');
+          expect(err).to.have.property('message', 'Refresh token\'s missing');
           done();
         });
     });
@@ -180,10 +180,10 @@ describe('Module services/api', () => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
           expect(err).to.be.an.instanceof(UnauthorizedAccessError);
-          expect(err).to.have.own.property('name', 'UnauthorizedAccessError');
-          expect(err).to.have.own.property('statusCode', 401);
-          expect(err).to.have.own.property('code', 'REFRESH_NOT_ALLOWED');
-          expect(err).to.have.own.property('message', 'Refresh token has been revoked');
+          expect(err).to.have.property('name', 'UnauthorizedAccessError');
+          expect(err).to.have.property('statusCode', 401);
+          expect(err).to.have.property('code', 'REFRESH_NOT_ALLOWED');
+          expect(err).to.have.property('message', 'Refresh token has been revoked');
           done();
         });
     });
@@ -195,10 +195,10 @@ describe('Module services/api', () => {
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
           expect(err).to.be.an.instanceof(ApiError);
-          expect(err).to.have.own.property('name', 'ApiError');
-          expect(err).to.have.own.property('statusCode', 500);
-          expect(err).to.have.own.property('code', 'USER_NOT_FOUND');
-          expect(err).to.have.own.property('message', 'No user found for login in JWT Token');
+          expect(err).to.have.property('name', 'ApiError');
+          expect(err).to.have.property('statusCode', 500);
+          expect(err).to.have.property('code', 'USER_NOT_FOUND');
+          expect(err).to.have.property('message', 'No user found for login in JWT Token');
           done();
         });
     });
@@ -209,7 +209,7 @@ describe('Module services/api', () => {
       api.login(userTest)
         .catch((err) => {
           expect(err).to.be.an.instanceof(Error);
-          expect(err).to.have.own.property('message', 'Internal error');
+          expect(err).to.have.property('message', 'Internal error');
           done();
         });
     });

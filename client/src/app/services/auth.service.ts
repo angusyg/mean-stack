@@ -35,6 +35,6 @@ export class AuthService {
    * @return true if user is authenticated, false otherwise
    */
   isAuthenticated(): boolean {
-    return localStorage.getItem('accessToken') ? true : false;
+    return !!localStorage.getItem('accessToken');
   }
 }

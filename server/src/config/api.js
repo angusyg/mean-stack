@@ -36,7 +36,7 @@ const api = {
    * @type {number}
    * @default 60 * 10
    */
-  accessTokenExpirationTime: 600000000000000000000000000000 * 10,
+  accessTokenExpirationTime: 60 * 10,
 
   /**
    * Refresh token header name

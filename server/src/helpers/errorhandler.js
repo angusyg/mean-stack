@@ -1,5 +1,5 @@
 /**
- * @fileoverview Middlewares for error handling
+ * @fileoverview Middleware for error handling
  * @module helpers/errorhandler
  * @requires models/errors
  */

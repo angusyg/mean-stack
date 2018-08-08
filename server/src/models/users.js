@@ -116,6 +116,7 @@ UserSchema.methods.comparePassword = function (candidatePassword) { // eslint-di
  * @method restify
  * @static
  * @param  {external:Router} router - Express Router
+ * @param  {Function[]}      preMiddleware - pre middleware array
  */
 UserSchema.statics.restify = function (router, preMiddleware) { // eslint-disable-line func-names
   const options = Object.assign({}, apiCfg.restResourceOptions);

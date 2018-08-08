@@ -30,8 +30,8 @@ const crossOrigin = {
   /**
    * Checks if request origin is a domain authorized
    * @function origin
-   * @param  {string}          origin    - origin of request
-   * @param  {nextMiddleware}  callback  - Callback to pass control to next middleware
+   * @param  {string}    origin    - origin of request
+   * @param  {Function}  callback  - Callback to pass control to CORS middleware
    */
   origin(origin, callback) {
     const whitelistOrigins = process.env.CORS_ORIGINS || [];

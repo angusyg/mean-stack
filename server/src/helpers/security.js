@@ -1,5 +1,5 @@
 /**
- * @fileoverview Security middlewares to check user authorizations
+ * @fileoverview Security middleware to check user authorizations
  * @module helpers/security
  * @requires helpers/passport
  * @requires models/errors
